@@ -6,156 +6,53 @@
 
 DSS-Becas es un Sistema de Soporte a Decisiones orientado a mejorar la gestión de becas universitarias mediante el análisis de información académica y socioeconómica de los estudiantes.
 
-El sistema permite evaluar candidatos mediante criterios ponderados, generar puntajes DSS, clasificar estudiantes y apoyar la toma de decisiones del área de Bienestar Universitario.
+El sistema permite evaluar candidatos mediante criterios ponderados, generar puntuaciones DSS, clasificar estudiantes y apoyar la toma de decisiones del área de Bienestar Universitario.
 
 ---
 
-# Objetivo del sistema
+## Estructura del repositorio
 
-Desarrollar una herramienta que facilite la asignación, renovación y seguimiento de becas mediante información organizada, indicadores y recomendaciones automáticas.
+###  Documentación
 
----
+Contiene la documentación general del proyecto y la actividad desarrollada.
 
-# Usuarios del sistema
-
-## Director de Bienestar Universitario
-
-Funciones:
-
-- Analizar indicadores generales.
-- Revisar rankings de candidatos.
-- Tomar decisiones estratégicas.
-
-## Analista de Bienestar
-
-Funciones:
-
-- Registrar estudiantes.
-- Validar información.
-- Ejecutar evaluaciones DSS.
-- Generar reportes.
-
-## Estudiante
-
-Funciones:
-
-- Consultar estado de beca.
-- Revisar información de solicitud.
+➡️ [docs](./docs)
 
 ---
 
-# Módulos del sistema
+###  Estrategia UX
 
-## Dashboard DSS
+Contiene la investigación y planificación de experiencia de usuario.
 
-Incluye:
-
-- Indicadores KPI.
-- Ranking de candidatos.
-- Alertas.
-- Distribución de estudiantes.
-
-## Gestión de estudiantes
-
-Permite:
-
-- Registrar estudiantes.
-- Consultar información.
-- Actualizar datos.
-- Revisar detalles.
-
-## Evaluación DSS
-
-Permite:
-
-- Aplicar criterios ponderados.
-- Calcular puntaje DSS.
-- Generar recomendaciones.
-
-## Gestión de becas
-
-Incluye:
-
-- Solicitudes.
-- Asignaciones.
-- Renovaciones.
-
-## Seguimiento
-
-Control de:
-
-- Rendimiento académico.
-- Asistencia.
-- Situaciones de riesgo.
-
-## Reportes
-
-Generación de información para análisis institucional.
+➡️ [ux_strategy](./ux_strategy)
 
 ---
 
-# Estructura del repositorio
-DSS-Becas
+###  Diagramas
 
-├── ux_strategy
-│ └── Documentación UX
+Contiene diagramas de navegación y modelado del sistema.
 
-├── diagrams
-│ ├── Diagrama de navegación
-│ └── Archivos Draw.io
-
-└── prototypes
-├── Dashboard DSS
-├── Gestión estudiantes
-├── Nuevo estudiante
-├── Detalle estudiante
-└── Evaluación DSS
+➡️ [diagrams](./diagrams)
 
 ---
 
-# Documentación UX
+###  Prototipos UI
 
-La estrategia UX contiene:
+Contiene las interfaces diseñadas para el sistema DSS-Becas.
 
-- Descripción del producto.
-- Usuarios objetivo.
-- Necesidades.
-- Objetivos de interacción.
-
-Ubicación:
-
-`ux_strategy/`
+➡️ [prototypes](./prototypes)
 
 ---
 
-# Diagramas
+## Herramientas utilizadas
 
-El proyecto incluye el diagrama de navegación del sistema.
-
-Ubicación:
-
-`diagrams/`
-
----
-
-# Prototipos UI
-
-Se incluyen prototipos de:
-
-- Panel principal DSS.
-- Gestión de estudiantes.
-- Evaluación DSS.
-- Registro de estudiante.
-- Detalle del estudiante.
-
-Ubicación:
-
-`prototypes/`
+- GitHub para gestión del repositorio.
+- Draw.io para elaboración de diagramas.
+- Herramientas de prototipado UX/UI.
+- Microsoft Word para documentación.
 
 ---
 
-# Herramientas utilizadas
+## Autor
 
-- Figma para diseño de interfaces.
-- Draw.io para diagramas.
-- GitHub para control y documentación del proyecto.
+Nahuel
