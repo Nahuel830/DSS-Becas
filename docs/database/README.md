@@ -43,10 +43,15 @@ Administra los accesos al sistema.
 ## Relaciones principales
 ## Modelo Entidad Relación
 
-El modelo representa las entidades principales del sistema DSS-Becas y sus relaciones.
+El modelo entidad relación representa la estructura de datos principal del sistema DSS-Becas.
+
+Incluye las entidades:
+
+- Estudiante
+- Evaluación
+- Beca
+- Usuario
+
+y sus relaciones dentro del proceso de asignación y seguimiento de becas.
 
 ![Modelo Entidad Relación](modelo_entidad.png)
-
-- Un estudiante puede tener evaluaciones.
-- Una evaluación genera un resultado.
-- Un estudiante puede recibir una beca.
