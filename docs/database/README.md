@@ -41,6 +41,11 @@ Atributos:
 Administra los accesos al sistema.
 
 ## Relaciones principales
+## Modelo Entidad Relación
+
+El modelo representa las entidades principales del sistema DSS-Becas y sus relaciones.
+
+![Modelo Entidad Relación](modelo_entidad.png)
 
 - Un estudiante puede tener evaluaciones.
 - Una evaluación genera un resultado.
