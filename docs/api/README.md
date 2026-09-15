@@ -19,3 +19,27 @@ Método:
 POST
 
 Endpoint:
+# API Resultados
+
+## Consultar resultados DSS
+
+Método:
+
+GET
+
+Endpoint:
+
+/api/resultados
+
+## Descripción
+
+Permite consultar los resultados generados después de la evaluación del estudiante.
+
+## Respuesta esperada
+
+```json
+{
+ "estudiante": "Juan Perez",
+ "puntaje": 85,
+ "beca": "Beca Excelencia"
+}
