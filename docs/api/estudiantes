@@ -1,1 +1,16 @@
 
+Descripción:
+
+Permite registrar la información académica y socioeconómica de un estudiante.
+
+---
+
+## 2. Evaluación DSS
+
+### Evaluar estudiante
+
+Método:
+
+POST
+
+Endpoint:
