@@ -1,1 +1,36 @@
+@startuml
+title Arquitectura del Sistema DSS-Becas
 
+skinparam componentStyle rectangle
+
+actor "Usuario\n(Administrador / Bienestar Universitario)" as Usuario
+
+package "Sistema DSS-Becas" {
+
+    component "Capa de Presentación\n\nInterfaz Web\nDashboard\nGestión de estudiantes" as Presentacion
+
+    component "Capa de Lógica de Negocio\n\nMotor DSS\nEvaluación de criterios\nCálculo de puntajes\nAsignación de becas\nSeguimiento" as Logica
+
+    component "Capa de Datos\n\nBase de Datos\n\n- Estudiantes\n- Información académica\n- Datos socioeconómicos\n- Becas\n- Resultados evaluación" as Datos
+
+    component "Módulo de Reportes\n\nGeneración de informes\nRanking de candidatos\nEstado de becas" as Reportes
+}
+
+Usuario --> Presentacion : Ingresa información\nConsulta resultados
+
+Presentacion --> Logica : Solicita procesos\ny evaluaciones
+
+Logica --> Datos : Consulta y almacena\ninformación
+
+Logica --> Reportes : Genera resultados\ny reportes
+
+Reportes --> Presentacion : Muestra información
+
+
+note right of Logica
+Sistema de Soporte a Decisiones
+basado en criterios ponderados
+para asignación de becas
+end note
+
+@enduml
