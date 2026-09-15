@@ -1,1 +1,32 @@
+@startuml
 
+actor Administrador
+
+participant "Interfaz DSS-Becas" as UI
+participant "Motor DSS" as DSS
+database "Base de Datos" as BD
+
+Administrador -> UI: Solicita evaluación estudiante
+
+UI -> DSS: Enviar datos académicos\n y socioeconómicos
+
+DSS -> BD: Consultar información estudiante
+
+BD --> DSS: Retornar datos
+
+DSS -> DSS: Calcular puntaje DSS
+
+alt Puntaje >= 80
+
+DSS --> UI: Estudiante recomendado
+
+else Puntaje < 80
+
+DSS --> UI: Estudiante en revisión
+
+end
+
+UI --> Administrador: Mostrar resultado evaluación
+
+
+@enduml
