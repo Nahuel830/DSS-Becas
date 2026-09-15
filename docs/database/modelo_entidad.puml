@@ -1,1 +1,49 @@
+@startuml
 
+title Modelo Entidad Relación - DSS Becas
+
+entity Estudiante {
+* id_estudiante : int
+--
+nombre : varchar
+apellido : varchar
+carrera : varchar
+promedio : decimal
+ingreso_familiar : decimal
+}
+
+entity Evaluacion {
+* id_evaluacion : int
+--
+fecha : date
+puntaje_academico : decimal
+puntaje_social : decimal
+puntaje_final : decimal
+resultado : varchar
+}
+
+entity Beca {
+* id_beca : int
+--
+nombre_beca : varchar
+tipo : varchar
+monto : decimal
+estado : varchar
+}
+
+entity Usuario {
+* id_usuario : int
+--
+nombre : varchar
+correo : varchar
+rol : varchar
+}
+
+Estudiante ||--o{ Evaluacion : realiza
+
+Estudiante }o--o{ Beca : recibe
+
+Usuario ||--o{ Evaluacion : administra
+
+
+@enduml
