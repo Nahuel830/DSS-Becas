@@ -1,1 +1,44 @@
+@startuml
 
+class Estudiante {
+- codigo
+- nombre
+- carrera
+- promedio
+- asistencia
+- ingresoFamiliar
+}
+
+class EvaluacionDSS {
+- puntaje
+- fechaEvaluacion
+- estado
++ calcularPuntaje()
+}
+
+class Criterio {
+- nombre
+- peso
+- valor
+}
+
+class Beca {
+- tipoBeca
+- estado
+- fechaAsignacion
+}
+
+class Administrador {
+- usuario
+- contraseña
++ evaluarEstudiante()
++ asignarBeca()
+}
+
+Estudiante "1" --> "1" EvaluacionDSS
+EvaluacionDSS "*" --> "*" Criterio
+Estudiante "1" --> "*" Beca
+Administrador --> EvaluacionDSS
+Administrador --> Beca
+
+@enduml
