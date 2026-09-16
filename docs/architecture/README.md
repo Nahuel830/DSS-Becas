@@ -53,4 +53,4 @@ Permite generar información para la toma de decisiones:
 
 ## Diagrama de arquitectura
 
-![Arquitectura DSS-Becas](arquitectura_sistema.png)
+![Arquitectura DSS-Becas](arquitectura_sistema.png.drawio.png)
