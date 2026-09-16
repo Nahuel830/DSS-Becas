@@ -19,6 +19,24 @@ Método:
 POST
 
 Endpoint:
+
+/estudiantes
+
+Descripción:
+
+Permite registrar la información académica y socioeconómica de un estudiante.
+
+Respuesta esperada:
+
+201 Created
+
+### Registrar estudiante
+
+Método:
+
+POST
+
+Endpoint:
 # API Resultados
 
 ## Consultar resultados DSS
