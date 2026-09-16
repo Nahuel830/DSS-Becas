@@ -1,0 +1,122 @@
+openapi: 3.0.3
+info:
+  title: DSS-Becas API
+  description: API para el Sistema de Soporte a Decisiones para la Asignación de Becas Universitarias
+  version: 1.0.0
+paths:
+  /estudiantes:
+    get:
+      summary: Obtener lista de estudiantes
+      responses:
+        '200':
+          description: Lista de estudiantes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Estudiante'
+    post:
+      summary: Registrar un estudiante
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Estudiante'
+      responses:
+        '201':
+          description: Estudiante registrado con éxito
+  /evaluaciones:
+    post:
+      summary: Registrar una nueva evaluación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Evaluacion'
+      responses:
+        '201':
+          description: Evaluación registrada
+  /resultados/{id_estudiante}:
+    get:
+      summary: Obtener resultados de un estudiante
+      parameters:
+        - in: path
+          name: id_estudiante
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Resultados obtenidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resultado'
+  /becas:
+    post:
+      summary: Asignar una beca
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Beca'
+      responses:
+        '201':
+          description: Beca asignada
+components:
+  schemas:
+    Estudiante:
+      type: object
+      properties:
+        id_estudiante:
+          type: integer
+        nombre:
+          type: string
+        apellido:
+          type: string
+        carrera:
+          type: string
+        promedio:
+          type: number
+        ingreso_familiar:
+          type: number
+    Evaluacion:
+      type: object
+      properties:
+        id_evaluacion:
+          type: integer
+        id_estudiante:
+          type: integer
+        fecha:
+          type: string
+          format: date
+        puntaje_academico:
+          type: number
+        puntaje_social:
+          type: number
+        puntaje_final:
+          type: number
+    Resultado:
+      type: object
+      properties:
+        id_resultado:
+          type: integer
+        id_estudiante:
+          type: integer
+        resultado:
+          type: string
+    Beca:
+      type: object
+      properties:
+        id_beca:
+          type: integer
+        id_estudiante:
+          type: integer
+        nombre_beca:
+          type: string
+        monto:
+          type: number

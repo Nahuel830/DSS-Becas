@@ -2,6 +2,11 @@
 
 Esta carpeta contiene la documentación del modelo de datos del sistema DSS-Becas.
 
+## Archivos y Documentación
+
+- [Script de Base de Datos](./script_bd.sql): Script DDL para la creación de la base de datos `dss_becas`.
+- [Diccionario de Datos](./diccionario_datos.md): Detalles de tablas, campos y restricciones.
+
 ## Entidades principales
 
 ### Estudiante

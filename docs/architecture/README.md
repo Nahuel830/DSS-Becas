@@ -2,6 +2,12 @@
 
 Esta carpeta contiene la documentación relacionada con la arquitectura del Sistema de Soporte a Decisiones para la Asignación y Seguimiento de Becas Universitarias.
 
+## Documentos de Arquitectura
+
+- [Componentes del Sistema](./componentes_sistema.md)
+- [Decisiones de Arquitectura](./decisiones_arquitectura.md)
+- [Diagrama de Componentes (PlantUML)](./diagrama_componentes.puml)
+
 ## Arquitectura general
 
 El sistema está diseñado con una arquitectura por capas que permite separar responsabilidades y facilitar el mantenimiento del sistema.
@@ -53,4 +59,4 @@ Permite generar información para la toma de decisiones:
 
 ## Diagrama de arquitectura
 
-![Arquitectura DSS-Becas](arquitectura_sistema.png.drawio.png)
+![Arquitectura DSS-Becas](../diagrams/arquitectura_sistema.png.drawio.png)

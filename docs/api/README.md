@@ -6,6 +6,9 @@ Esta carpeta contiene la documentación de los servicios principales del sistema
 
 Definir los servicios que permiten gestionar la información de estudiantes, evaluaciones y asignación de becas.
 
+Consulta la especificación completa en:
+- [OpenAPI Specification](./openapi.yaml)
+
 ---
 
 # Servicios principales
@@ -30,13 +33,6 @@ Respuesta esperada:
 
 201 Created
 
-### Registrar estudiante
-
-Método:
-
-POST
-
-Endpoint:
 # API Resultados
 
 ## Consultar resultados DSS

@@ -1,0 +1,22 @@
+@startuml
+package "Capa de Presentación" {
+  [Frontend UI]
+}
+
+package "Capa de Lógica (API REST)" {
+  [Controladores]
+  [Servicios]
+  [Motor DSS]
+}
+
+package "Capa de Datos" {
+  database "MySQL" {
+    [Base de Datos dss_becas]
+  }
+}
+
+[Frontend UI] --> [Controladores] : HTTP / JSON
+[Controladores] --> [Servicios]
+[Servicios] --> [Motor DSS] : Calcula Puntaje
+[Servicios] --> [Base de Datos dss_becas] : Persiste datos
+@enduml
