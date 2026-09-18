@@ -105,6 +105,9 @@ Contiene los prototipos de interfaz diseñados para representar la interacción 
 
 **Autor:**  
 Nahuel Fernando Martinez Mariscal
+Jose Huarachi 
+Xavier Catrillo
+Jorge Villa Rubia
 
 ---
 
