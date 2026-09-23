@@ -87,7 +87,34 @@ Contiene los prototipos de interfaz diseñados para representar la interacción 
 
 ---
 
-# Herramientas utilizadas
+## Frontend
+
+Aplicación web (React 18 + TypeScript + Vite 5, React Router 6, TanStack Query 5, CSS plano en `global.css`). Sin backend todavía: lee `VITE_API_URL` y usa mocks con forma del contrato cuando no hay API.
+
+➡️ [frontend](./frontend) · Plan: [docs/frontend/plan_frontend.md](./docs/frontend/plan_frontend.md)
+
+**Requisitos:** Node 20+ y npm.
+
+```bash
+cd frontend
+cp .env.example .env   # VITE_API_URL=http://localhost:3000
+npm install
+npm run dev            # http://localhost:8080
+npm run typecheck
+npm run build
+```
+
+**Estructura:** `src/components/` (incl. `layout/`) · `src/pages/` (una por ruta) · `src/services/api/` (cliente + tipos del contrato + `mocks.ts`) · `src/models/` · `src/routing/` · `src/state/` · `src/utils/` · `src/styles/`.
+
+**Pantallas implementadas:** Dashboard (`/dashboard`), Gestión (`/estudiantes`), Nuevo (`/estudiantes/nuevo`), Detalle (`/estudiantes/:idEstudiante`), Evaluación (`/evaluaciones/nueva`) y esqueleto de Becas (`/becas`).
+
+**Pendientes:** Seguimiento, Reportes y Administración son placeholders (sin endpoint en `openapi.yaml` ni mock); no hay backend, tests/lint/CI.
+
+**Convenciones:** Conventional Commits (`feat(frontend): …`) y ramas `feature/`, `docs/`, `fix/` (detalle en `docs/frontend/plan_frontend.md` §5).
+
+---
+
+## Herramientas utilizadas
 
 - **GitHub:** Gestión del repositorio y control de versiones.
 - **Draw.io:** Elaboración de diagramas UML y arquitectura.

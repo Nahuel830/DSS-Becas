@@ -118,5 +118,11 @@ components:
           type: integer
         nombre_beca:
           type: string
+        tipo:
+          type: string
+          enum: [Excelencia, Social]
         monto:
           type: number
+        estado:
+          type: string
+          enum: [Activa, Inactiva]
