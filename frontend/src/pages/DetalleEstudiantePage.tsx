@@ -8,7 +8,7 @@ import { PageHeader } from "../components/PageHeader";
 import type { EstadoEstudiante } from "../models/domain";
 import { ROUTES } from "../routing/routes";
 import { fetchDashboard } from "../services/api/dashboard";
-import { MOCK_BECAS, MOCK_CRITERIOS, MOCK_EVALUACION_PEDRO, MOCK_HISTORIAL } from "../services/api/mocks";
+import { MOCK_BECAS, MOCK_CRITERIOS, MOCK_HISTORIAL } from "../services/api/mocks";
 import { resultadosApi } from "../services/api/resultados";
 import { clasificarPuntaje, codigoEstudiante, nombreCompleto } from "../utils/dss";
 import { formatPuntaje } from "../utils/format";
@@ -49,7 +49,7 @@ export function DetalleEstudiantePage() {
     );
   }
 
-  const evaluacion = [...dash.data.evaluaciones, MOCK_EVALUACION_PEDRO].find((ev) => ev.id_estudiante === id);
+  const evaluacion = dash.data.evaluaciones.find((ev) => ev.id_estudiante === id);
   const puntaje = evaluacion?.puntaje_final ?? null;
   const beca = MOCK_BECAS.find((b) => b.id_estudiante === id);
   const criterios = MOCK_CRITERIOS[id];

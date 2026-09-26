@@ -7,6 +7,7 @@ import { FormSection } from "../components/FormSection";
 import { PageHeader } from "../components/PageHeader";
 import { TIPO_BECA } from "../models/domain";
 import { ROUTES } from "../routing/routes";
+import { USE_MOCKS } from "../services/api/client";
 import { estudiantesApi } from "../services/api/estudiantes";
 import type { Estudiante } from "../services/api/types";
 
@@ -165,6 +166,9 @@ export function NuevoEstudiantePage() {
 
           {falloApi && (
             <p className="error">Sin backend disponible: el estudiante no pudo registrarse (POST /estudiantes falló).</p>
+          )}
+          {USE_MOCKS && (
+            <p className="muted">Modo demostración (VITE_USE_MOCKS=true): el registro se simula y no persiste.</p>
           )}
           <div className="form-actions">
             <button className="btn btn-primary" type="submit" disabled={mutation.isPending}>

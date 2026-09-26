@@ -1,35 +1,61 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { AlertsPanel } from "../components/AlertsPanel";
+import { Button } from "../components/Button";
 import { Card } from "../components/Card";
+import { EmptyState } from "../components/EmptyState";
 import { EstadoChart } from "../components/EstadoChart";
 import { KpiCard } from "../components/KpiCard";
 import { PageHeader } from "../components/PageHeader";
 import { RankingTable, type RankingRow } from "../components/RankingTable";
+import { Spinner } from "../components/Spinner";
+import { ROUTES } from "../routing/routes";
 import { fetchDashboard } from "../services/api/dashboard";
-import { clasificarPuntaje } from "../utils/dss";
+import { clasificarPuntaje, nombreCompleto } from "../utils/dss";
 
-/** dashboard-dss.png → /dashboard. GET /estudiantes (mock local si no hay backend). */
+/** dashboard-dss.png → /dashboard. GET /estudiantes (mock con VITE_USE_MOCKS=true). */
 export function DashboardPage() {
-  const { data, isPending } = useQuery({ queryKey: ["dashboard"], queryFn: fetchDashboard });
+  const { data, isPending, isError, refetch } = useQuery({
+    queryKey: ["dashboard"],
+    queryFn: fetchDashboard,
+  });
 
-  if (isPending || !data) {
+  if (isPending) {
     return (
       <div className="page">
         <PageHeader title="Dashboard DSS - Panel principal" />
-        <p className="muted">Cargando panel…</p>
+        <Spinner texto="Cargando panel…" />
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="page">
+        <PageHeader title="Dashboard DSS - Panel principal" />
+        <EmptyState
+          titulo="No se pudo cargar el panel"
+          detalle="Verificá VITE_API_URL o activá VITE_USE_MOCKS=true."
+          accion={
+            <Button type="button" onClick={() => void refetch()}>
+              Reintentar
+            </Button>
+          }
+        />
       </div>
     );
   }
 
   const porEstudiante = new Map(data.estudiantes.map((e) => [e.id_estudiante, e]));
-  const rows: RankingRow[] = [...data.evaluaciones]
+  const ranking: RankingRow[] = [...data.evaluaciones]
     .sort((a, b) => (b.puntaje_final ?? 0) - (a.puntaje_final ?? 0))
+    .slice(0, 5)
     .map((ev, i) => {
       const e = porEstudiante.get(ev.id_estudiante);
       const puntaje = ev.puntaje_final ?? 0;
       return {
         posicion: i + 1,
-        estudiante: e ? `${e.nombre ?? ""} ${e.apellido ?? ""}`.trim() : `ID ${ev.id_estudiante}`,
+        estudiante: e ? nombreCompleto(e) : `ID ${ev.id_estudiante}`,
         puntaje,
         estado: clasificarPuntaje(puntaje),
       };
@@ -38,7 +64,7 @@ export function DashboardPage() {
   return (
     <div className="page">
       <PageHeader title="Dashboard DSS - Panel principal" />
-      {!data.live && <p className="muted">Datos de demostración (sin backend en VITE_API_URL).</p>}
+      {!data.live && <p className="muted">Datos de demostración (VITE_USE_MOCKS=true).</p>}
 
       <div className="kpi-grid">
         <KpiCard label="Estudiantes evaluados" value={data.resumen.evaluados} tone="teal" />
@@ -49,7 +75,15 @@ export function DashboardPage() {
 
       <div className="cols-2">
         <Card title="Ranking de candidatos">
-          <RankingTable rows={rows} />
+          {ranking.length === 0 ? (
+            <EmptyState
+              titulo="Sin evaluaciones"
+              detalle="Todavía no hay puntajes para mostrar."
+              accion={<Link to={ROUTES.nuevaEvaluacion}>Ir a evaluar</Link>}
+            />
+          ) : (
+            <RankingTable rows={ranking} />
+          )}
         </Card>
         <Card title="Alertas">
           <AlertsPanel alertas={data.alertas} />

@@ -1,6 +1,6 @@
 # AGENTS.md — DSS-Becas
 
-> Docs + UI prototypes + `frontend/` app (React 18+TS+Vite 5, Router 6, TanStack Query 5; ver `docs/frontend/plan_frontend.md`). 5 vistas implementadas (dashboard, gestión, nuevo, detalle, evaluación) + esqueleto becas; sin backend (mocks con forma del contrato), ni tests/lint/CI. Comandos verificados en `frontend/`: `npm install`, `npm run dev` (:8080), `npm run typecheck`, `npm run build`. Env: `VITE_API_URL` (ver `.env.example`).
+> Docs + UI prototypes + `frontend/` app (React 18+TS+Vite 5, Router 6, TanStack Query 5, recharts, lucide-react, clsx; ver `docs/frontend/plan_frontend.md` y `docs/PLAN_IMPLEMENTACION.md`). 6 vistas implementadas (dashboard, gestión, nuevo, detalle, evaluación, becas) + placeholders; sin backend (mocks de 30 estudiantes con `VITE_USE_MOCKS=true`), ni tests/lint/CI. Comandos verificados en `frontend/`: `npm install`, `npm run dev` (:8080), `npm run typecheck`, `npm run build`. Env: `VITE_API_URL`, `VITE_USE_MOCKS` (ver `.env.example`).
 
 ## Sources of truth (trust in this order)
 
@@ -23,9 +23,9 @@ If docs conflict, prefer `script_bd.sql` and `openapi.yaml` over prose `.md`.
 
 ## Frontend (colaboradores: leer antes de tocar)
 
-- Estructura fija: `components/` (+`layout/`), `pages/` (una por ruta), `services/api/` (cliente `client.ts`, tipos `types.ts`, `mocks.ts`), `models/`, `routing/` (`routes.ts` + `router.tsx`), `state/` (`queryClient.ts`), `utils/`, `styles/` (`global.css`, sin Tailwind).
+- Estructura fija: `components/` (+`layout/`; primitivas `Button`, `Spinner`, `EmptyState` en raíz), `pages/` (una por ruta), `services/api/` (cliente `client.ts` con `USE_MOCKS`, tipos `types.ts`, `mocks.ts` con 30 estudiantes), `models/` (dominio: `Usuario`, `Criterio` incluidos), `routing/` (`routes.ts` + `router.tsx`), `state/` (`queryClient.ts`, `useAsync.ts`), `utils/` (reglas DSS en `dss.ts`, formatos Bs/fecha/% en `format.ts`), `styles/` (`tokens.css` + `global.css`, sin Tailwind; fuente Inter).
 - Contrato primero: tipos y nombres snake_case de `openapi.yaml` (`id_estudiante`, `ingreso_familiar`, `nombre_beca`; `tipo`/`estado` con enum). Nunca reintroducir `codigo`/`ingresoFamiliar`/`tipoBeca`.
-- Sin backend: las vistas usan fallback a `mocks.ts` (misma forma del contrato) y exponen `live:false`. Clave de caché compartida `["dashboard"]`. Al conectar el backend real, quitar mocks por servicio, no la estructura.
+- Sin backend: las vistas usan mocks (`VITE_USE_MOCKS=true`, retardo 300 ms) con la misma firma que la API real y exponen `live:false`. Clave de caché compartida `["dashboard"]`. Al conectar el backend real (`VITE_USE_MOCKS=false`), quitar mocks por servicio, no la estructura. Decisiones por falta de spec: ver `docs/DECISIONES.md` (obligatorio registrar ahí).
 - Rutas 1:1 con `prototypes/`: `/dashboard`, `/estudiantes`, `/estudiantes/nuevo`, `/estudiantes/:idEstudiante`, `/evaluaciones/nueva`, `/becas`. Placeholders sin endpoint: `/seguimiento`, `/reportes`, `/administracion` (no implementar hasta tener spec+mock).
 - Componentes reutilizables: `Card`, `PageHeader`, `KpiCard`, `EstadoBadge`, `RankingTable`, `EstudiantesTable`, `AlertsPanel`, `EstadoChart`, `FormField`, `FormSection`, `Avatar`, `CriterioBar`, `UmbralLegend`. Un componente por archivo, `PascalCase`, páginas `*Page`.
 - Commits convencionales (`feat(frontend): …`, `docs(…): …`, `fix(…): …`); ramas `feature/`, `docs/`, `fix/`; un cambio lógico por commit con su doc actualizada. No agregar frameworks/deps ni CI sin confirmación del owner.

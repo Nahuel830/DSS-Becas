@@ -1,0 +1,33 @@
+/* Tokens del sistema de diseño (extraídos de prototypes/*.png). Ver docs/PLAN_IMPLEMENTACION.md §d. */
+
+:root {
+  --sidebar-bg: #0f2a3d;
+  --sidebar-active: #0e7c7b;
+  --accent: #0e7c7b;
+  --gold: #b08d1e;
+  --danger: #b03a2e;
+  --gray-badge: #6b7a86;
+  --bg: #f4f6f8;
+  --card-bg: #ffffff;
+  --border: #e2e8ee;
+  --input-border: #b9c6cf;
+  --surface-gray: #c9d2d9;
+  --track: #e6ebef;
+  --text: #1f2a33;
+  --muted: #6b7a86;
+  --error: #a02a2a;
+  --sidebar-text: #d7e1e8;
+  --sidebar-muted: #b9c7d1;
+
+  --font-base: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --radius-card: 6px;
+  --radius-control: 2px;
+  --radius-pill: 10px;
+
+  --shadow-card: none;
+
+  --space-page: 24px;
+  --space-card: 16px;
+  --space-grid: 16px;
+}

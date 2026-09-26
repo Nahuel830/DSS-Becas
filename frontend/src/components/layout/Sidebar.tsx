@@ -1,29 +1,40 @@
+import { Award, ClipboardCheck, FileText, LayoutDashboard, LineChart, Settings, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { ROUTES } from "../../routing/routes";
 
+const ITEMS = [
+  { to: ROUTES.dashboard, texto: "Dashboard DSS", Icono: LayoutDashboard, pendiente: false },
+  { to: ROUTES.estudiantes, texto: "Estudiantes", Icono: Users, pendiente: false },
+  { to: ROUTES.nuevaEvaluacion, texto: "Evaluación DSS", Icono: ClipboardCheck, pendiente: false },
+  { to: ROUTES.becas, texto: "Becas", Icono: Award, pendiente: false },
+  { to: ROUTES.seguimiento, texto: "Seguimiento*", Icono: LineChart, pendiente: true },
+  { to: ROUTES.reportes, texto: "Reportes*", Icono: FileText, pendiente: true },
+  { to: ROUTES.administracion, texto: "Administración*", Icono: Settings, pendiente: true },
+];
+
 /** Navegación lateral (diagrama-navegacion.png + sidebar de los mocks). */
-export function Sidebar() {
+export function Sidebar({ abierto, alNavegar }: { abierto: boolean; alNavegar: () => void }) {
   return (
-    <aside className="sidebar">
-      <div className="sidebar-brand">
-        <strong>DSS-Becas</strong>
-        <small>Bienestar Universitario</small>
-      </div>
-      <nav>
-        <NavLink to={ROUTES.dashboard}>Dashboard DSS</NavLink>
-        <NavLink to={ROUTES.estudiantes}>Estudiantes</NavLink>
-        <NavLink to={ROUTES.nuevaEvaluacion}>Evaluación DSS</NavLink>
-        <NavLink to={ROUTES.becas}>Becas</NavLink>
-        <NavLink to={ROUTES.seguimiento} className="pending">
-          Seguimiento*
-        </NavLink>
-        <NavLink to={ROUTES.reportes} className="pending">
-          Reportes*
-        </NavLink>
-        <NavLink to={ROUTES.administracion} className="pending">
-          Administración*
-        </NavLink>
-      </nav>
-    </aside>
+    <>
+      <div
+        className={`sidebar-overlay${abierto ? " visible" : ""}`}
+        onClick={alNavegar}
+        aria-hidden
+      />
+      <aside className={`sidebar${abierto ? " open" : ""}`}>
+        <div className="sidebar-brand">
+          <strong>DSS-Becas</strong>
+          <small>Bienestar Universitario</small>
+        </div>
+        <nav>
+          {ITEMS.map(({ to, texto, Icono, pendiente }) => (
+            <NavLink key={to} to={to} className={pendiente ? "pending" : undefined} onClick={alNavegar}>
+              <Icono size={17} aria-hidden />
+              {texto}
+            </NavLink>
+          ))}
+        </nav>
+      </aside>
+    </>
   );
 }

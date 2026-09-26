@@ -7,6 +7,7 @@ import { FormField } from "../components/FormField";
 import { PageHeader } from "../components/PageHeader";
 import { UmbralLegend } from "../components/UmbralLegend";
 import { ROUTES } from "../routing/routes";
+import { USE_MOCKS } from "../services/api/client";
 import { fetchDashboard } from "../services/api/dashboard";
 import { evaluacionesApi } from "../services/api/evaluaciones";
 import { PESOS_CRITERIOS, clasificarPuntaje, nombreCompleto } from "../utils/dss";
@@ -150,7 +151,10 @@ export function EvaluacionPage() {
               )}
             </p>
             {registrada && idEstudiante !== "" && (
-              <p>Evaluación registrada. <Link to={ROUTES.detalleEstudiante(idEstudiante)}>Ver detalle del estudiante</Link></p>
+              <p>
+                Evaluación registrada{USE_MOCKS ? " (simulado, no persiste)" : ""}.{" "}
+                <Link to={ROUTES.detalleEstudiante(idEstudiante)}>Ver detalle del estudiante</Link>
+              </p>
             )}
             {sinBackend && (
               <p className="error">Sin backend disponible: puntaje calculado localmente, no persistido (POST /evaluaciones falló).</p>

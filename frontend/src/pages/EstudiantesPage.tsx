@@ -6,7 +6,7 @@ import { EstudiantesTable, type EstudianteRow } from "../components/EstudiantesT
 import { PageHeader } from "../components/PageHeader";
 import { ROUTES } from "../routing/routes";
 import { fetchDashboard } from "../services/api/dashboard";
-import { MOCK_BECAS, MOCK_EVALUACION_PEDRO } from "../services/api/mocks";
+import { MOCK_BECAS } from "../services/api/mocks";
 import { clasificarPuntaje, codigoEstudiante, getEvaluacion, nombreCompleto } from "../utils/dss";
 
 /** gestion-estudiantes.png → /estudiantes. GET /estudiantes (mock si no hay backend). */
@@ -23,8 +23,8 @@ export function EstudiantesPage() {
     );
   }
 
-  // Sin GET /becas ni GET /evaluaciones en el contrato: becas y puntajes extra son mock.
-  const evaluaciones = [...data.evaluaciones, MOCK_EVALUACION_PEDRO];
+  // Sin GET /becas en el contrato: becas mock. Puntajes desde las evaluaciones.
+  const evaluaciones = data.evaluaciones;
   const rows: EstudianteRow[] = data.estudiantes.map((e) => {
     const id = e.id_estudiante ?? 0;
     const ev = getEvaluacion(evaluaciones, id);

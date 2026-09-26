@@ -2,6 +2,14 @@
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ?? "http://localhost:3000";
 
+/** true → mocks locales con retardo; false → API real. Por defecto true (sin backend). */
+export const USE_MOCKS = (import.meta.env.VITE_USE_MOCKS as string | undefined) !== "false";
+
+/** Retardo simulado de red en modo mock (300 ms por defecto). */
+export function simularRetardo(ms = 300): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export class ApiError extends Error {
   status: number;
   constructor(status: number, message: string) {
