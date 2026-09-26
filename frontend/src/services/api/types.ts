@@ -37,3 +37,30 @@ export interface Beca {
   monto?: number;
   estado?: EstadoBeca;
 }
+
+/** Respuesta paginada del backend (GET /estudiantes). */
+export interface Pagina<T> {
+  data: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+/** Filtros de la gestión (se envían al servidor o se emulan en mock). */
+export interface FiltrosEstudiantes {
+  q?: string;
+  carrera?: string;
+  estado?: string;
+  orden?: "codigo" | "nombre" | "carrera" | "promedio" | "puntaje";
+  dir?: "asc" | "desc";
+  pagina?: number;
+  porPagina?: number;
+}
+
+/** Evento del historial (GET /estudiantes/:id/historial o db local). */
+export interface EventoHistorial {
+  id_evento: number;
+  fecha: string;
+  tipo: string;
+  detalle: string;
+}

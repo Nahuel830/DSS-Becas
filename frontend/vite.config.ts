@@ -4,7 +4,6 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [react()],
   server: {
-    // Coincide con .vscode/launch.json ("Launch Chrome against localhost").
-    port: 8080,
+    port: 5173,
   },
 });

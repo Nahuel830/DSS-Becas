@@ -1,7 +1,10 @@
-/** Formato DECIMAL(5,2) de la BD para puntajes. */
+/** Formato DECIMAL(5,2) de la BD para puntajes (siempre al menos un decimal). */
 export function formatPuntaje(value: number | null | undefined): string {
   if (value === null || value === undefined || Number.isNaN(value)) return "-";
-  return value.toFixed(2).replace(/\.00$/, ".0").replace(/0$/, "");
+  const s = value.toFixed(2);
+  if (s.endsWith(".00")) return s.slice(0, -1);
+  if (s.endsWith("0")) return s.slice(0, -1);
+  return s;
 }
 
 /** Moneda en bolivianos (Bs). */

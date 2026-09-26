@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppLayout } from "../components/layout/AppLayout";
 import { AdministracionPage } from "../pages/AdministracionPage";
 import { BecasPage } from "../pages/BecasPage";
+import { ConfiguracionPage } from "../pages/ConfiguracionPage";
 import { DashboardPage } from "../pages/DashboardPage";
 import { DetalleEstudiantePage } from "../pages/DetalleEstudiantePage";
 import { EstudiantesPage } from "../pages/EstudiantesPage";
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
       { path: ROUTES.nuevaEvaluacion, element: <EvaluacionPage /> },
       { path: ROUTES.evaluacionPorId(), element: <EvaluacionPage /> },
       { path: ROUTES.becas, element: <BecasPage /> },
+      { path: ROUTES.configuracion, element: <ConfiguracionPage /> },
       // Sin endpoint ni mock: placeholder hasta fase 2.
       { path: ROUTES.seguimiento, element: <PlaceholderPage title="Seguimiento" /> },
       { path: ROUTES.reportes, element: <PlaceholderPage title="Reportes" /> },

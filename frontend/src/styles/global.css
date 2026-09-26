@@ -703,6 +703,36 @@ body {
   margin: 0 0 8px;
 }
 
+.modal-wide {
+  max-width: 560px;
+}
+
+/* Pestañas (configuración) */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.tab {
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  border-radius: var(--radius-control) var(--radius-control) 0 0;
+  padding: 10px 18px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: inherit;
+}
+
+.tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
 /* Skeleton de tabla */
 .skeleton-row td {
   padding: 10px 12px;
@@ -838,8 +868,7 @@ body {
 }
 
 /* Lista de documentos adjuntos */
-.doc-list {
-  list-style: none;
+.doc-list {  list-style: none;
   margin: 8px 0 0;
   padding: 0;
   display: flex;

@@ -1,10 +1,10 @@
+import type { EstudianteExtendido } from "../../models/domain";
 import { clasificarPuntaje } from "../../utils/dss";
-import { USE_MOCKS, simularRetardo } from "./client";
+import { USE_MOCKS, apiClient, simularRetardo } from "./client";
 import { db } from "./db";
 import { estudiantesApi } from "./estudiantes";
 import { MOCK_ALERTAS } from "./mocks";
-import type { EstudianteExtendido } from "../../models/domain";
-import type { Beca, Evaluacion } from "./types";
+import type { Beca, Estudiante, Evaluacion } from "./types";
 
 export interface ResumenDashboard {
   evaluados: number;
@@ -23,6 +23,16 @@ export interface DashboardData {
   live: boolean;
 }
 
+interface ResumenApi {
+  evaluados: number;
+  recomendados: number;
+  en_revision: number;
+  en_riesgo: number;
+  ranking: Array<{ posicion: number; estudiante: string; puntaje: number; estado: string }>;
+  distribucion: Array<{ estado: string; cantidad: number }>;
+  alertas: string[];
+}
+
 /** Calcula los indicadores del dashboard desde las evaluaciones (nunca hardcodeados). */
 export function calcularResumen(evaluaciones: Evaluacion[]): ResumenDashboard {
   const resumen: ResumenDashboard = { evaluados: 0, recomendados: 0, en_revision: 0, en_riesgo: 0 };
@@ -36,7 +46,7 @@ export function calcularResumen(evaluaciones: Evaluacion[]): ResumenDashboard {
   return resumen;
 }
 
-/** Dashboard: lee la db local (refleja altas/ediciones/bajas) o la API real. */
+/** Dashboard: resumen calculado por el backend, o bundle mock con VITE_USE_MOCKS=true. */
 export async function fetchDashboard(): Promise<DashboardData> {
   if (USE_MOCKS) {
     await simularRetardo();
@@ -51,14 +61,25 @@ export async function fetchDashboard(): Promise<DashboardData> {
       live: false,
     };
   }
-  const estudiantes = await estudiantesApi.list();
-  const evaluaciones = db.getAll("evaluaciones");
+  const [estudiantes, evaluaciones, becas, resumen] = await Promise.all([
+    estudiantesApi.list(),
+    apiClient.get<Evaluacion[]>("/evaluaciones"),
+    apiClient.get<Beca[]>("/becas"),
+    apiClient.get<ResumenApi>("/dashboard/resumen"),
+  ]);
   return {
-    estudiantes,
+    estudiantes: estudiantes as EstudianteExtendido[],
     evaluaciones,
-    becas: db.getAll("becas"),
-    resumen: calcularResumen(evaluaciones),
-    alertas: MOCK_ALERTAS,
+    becas,
+    resumen: {
+      evaluados: resumen.evaluados,
+      recomendados: resumen.recomendados,
+      en_revision: resumen.en_revision,
+      en_riesgo: resumen.en_riesgo,
+    },
+    alertas: resumen.alertas,
     live: true,
   };
 }
+
+export type { Estudiante };

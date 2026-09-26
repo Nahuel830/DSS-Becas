@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
@@ -8,21 +8,13 @@ import { EmptyState } from "../components/EmptyState";
 import { PageHeader } from "../components/PageHeader";
 import { Spinner } from "../components/Spinner";
 import { ROUTES } from "../routing/routes";
-import { fetchDashboard } from "../services/api/dashboard";
-import { estudiantesApi } from "../services/api/estudiantes";
+import { catalogosApi } from "../services/api/catalogos";
+import { estudiantesApi, type EstudianteListado } from "../services/api/estudiantes";
+import type { FiltrosEstudiantes } from "../services/api/types";
 import { useDebounce } from "../state/useDebounce";
 import { useToast } from "../state/ToastContext";
-import { clasificarPuntaje, codigoEstudiante, getEvaluacion, nombreCompleto } from "../utils/dss";
+import { codigoEstudiante, nombreCompleto } from "../utils/dss";
 import { formatPuntaje } from "../utils/format";
-
-interface Fila {
-  id: number;
-  codigo: string;
-  nombre: string;
-  carrera: string;
-  estadoBeca: string;
-  puntaje: number | null;
-}
 
 type Columna = "codigo" | "nombre" | "carrera" | "puntaje";
 
@@ -33,7 +25,7 @@ function numero(param: string | null, defecto: number): number {
   return Number.isInteger(n) && n > 0 ? n : defecto;
 }
 
-/** gestion-estudiantes.png → /estudiantes. Filtros en URL, orden, paginación y baja. */
+/** gestion-estudiantes.png → /estudiantes. Búsqueda, filtros, orden y paginación del servidor. */
 export function EstudiantesPage() {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
@@ -49,7 +41,7 @@ export function EstudiantesPage() {
     ? numero(params.get("porPagina"), 10)
     : 10;
   const orden = (params.get("orden") ?? "codigo") as Columna;
-  const direccion = params.get("dir") === "desc" ? "desc" : "asc";
+  const dir = params.get("dir") === "desc" ? "desc" : "asc";
 
   const [busqueda, setBusqueda] = useState(q);
   const busquedaDebounced = useDebounce(busqueda);
@@ -66,75 +58,28 @@ export function EstudiantesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [busquedaDebounced]);
 
+  const filtros: FiltrosEstudiantes = { q, carrera, estado, orden, dir, pagina, porPagina };
   const { data, isPending, isError, refetch } = useQuery({
-    queryKey: ["dashboard"],
-    queryFn: fetchDashboard,
+    queryKey: ["estudiantes", q, carrera, estado, pagina, porPagina, orden, dir],
+    queryFn: () => estudiantesApi.listar(filtros),
+  });
+
+  const carreras = useQuery({
+    queryKey: ["carreras-lista"],
+    queryFn: catalogosApi.carreras,
+    staleTime: 60000,
   });
 
   const eliminar = useMutation({
     mutationFn: (id: number) => estudiantesApi.remove(id),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["estudiantes"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.exito("Estudiante eliminado.");
       setEliminarId(null);
     },
-    onError: () => toast.error("No se pudo eliminar al estudiante."),
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "No se pudo eliminar al estudiante."),
   });
-
-  const carreras = useMemo(() => {
-    const set = new Set<string>();
-    for (const e of data?.estudiantes ?? []) if (e.carrera) set.add(e.carrera);
-    return [...set].sort();
-  }, [data]);
-
-  const filas: Fila[] = useMemo(() => {
-    if (!data) return [];
-    const becasActivas = new Set(
-      data.becas.filter((b) => b.estado === "Activa").map((b) => b.id_estudiante),
-    );
-    return data.estudiantes.map((e) => {
-      const id = e.id_estudiante ?? 0;
-      const puntaje = getEvaluacion(data.evaluaciones, id)?.puntaje_final ?? null;
-      return {
-        id,
-        codigo: codigoEstudiante(e.id_estudiante),
-        nombre: nombreCompleto(e),
-        carrera: e.carrera ?? "-",
-        estadoBeca: becasActivas.has(id) ? "Activa" : puntaje !== null ? clasificarPuntaje(puntaje) : "Pendiente",
-        puntaje,
-      };
-    });
-  }, [data]);
-
-  const filtradas = useMemo(() => {
-    const texto = q.trim().toLowerCase();
-    return filas.filter(
-      (r) =>
-        (!texto || `${r.codigo} ${r.nombre} ${r.carrera}`.toLowerCase().includes(texto)) &&
-        (!carrera || r.carrera === carrera) &&
-        (!estado || r.estadoBeca === estado),
-    );
-  }, [filas, q, carrera, estado]);
-
-  const ordenadas = useMemo(() => {
-    const clave: Record<Columna, (r: Fila) => string | number> = {
-      codigo: (r) => r.codigo,
-      nombre: (r) => r.nombre,
-      carrera: (r) => r.carrera,
-      puntaje: (r) => r.puntaje ?? -1,
-    };
-    const get = clave[orden] ?? clave.codigo;
-    return [...filtradas].sort((a, b) => {
-      const va = get(a);
-      const vb = get(b);
-      const cmp = typeof va === "number" && typeof vb === "number" ? va - vb : String(va).localeCompare(String(vb), "es");
-      return direccion === "desc" ? -cmp : cmp;
-    });
-  }, [filtradas, orden, direccion]);
-
-  const totalPaginas = Math.max(1, Math.ceil(ordenadas.length / porPagina));
-  const paginaActual = Math.min(pagina, totalPaginas);
-  const paginaFilas = ordenadas.slice((paginaActual - 1) * porPagina, paginaActual * porPagina);
 
   const cambiar = (cambios: Record<string, string>, resetPagina = false) => {
     setParams((prev) => {
@@ -149,19 +94,24 @@ export function EstudiantesPage() {
   };
 
   const ordenarPor = (col: Columna) => {
-    if (orden === col) cambiar({ dir: direccion === "asc" ? "desc" : "asc" });
+    if (orden === col) cambiar({ dir: dir === "asc" ? "desc" : "asc" });
     else cambiar({ orden: col, dir: "asc" });
   };
 
-  const indicador = (col: Columna) => (orden === col ? (direccion === "asc" ? " ▲" : " ▼") : "");
+  const indicador = (col: Columna) => (orden === col ? (dir === "asc" ? " ▲" : " ▼") : "");
 
   const limpiar = () => {
     setBusqueda("");
     setParams({});
   };
 
-  const desde = ordenadas.length === 0 ? 0 : (paginaActual - 1) * porPagina + 1;
-  const hasta = Math.min(paginaActual * porPagina, ordenadas.length);
+  const filas: EstudianteListado[] = data?.data ?? [];
+  const total = data?.total ?? 0;
+  const paginaSrv = data?.page ?? pagina;
+  const porPaginaSrv = data?.pageSize ?? porPagina;
+  const desde = total === 0 ? 0 : (paginaSrv - 1) * porPaginaSrv + 1;
+  const hasta = Math.min(paginaSrv * porPaginaSrv, total);
+  const totalPaginas = Math.max(1, Math.ceil(total / porPaginaSrv));
 
   return (
     <div className="page">
@@ -188,7 +138,7 @@ export function EstudiantesPage() {
           onChange={(e) => cambiar({ carrera: e.target.value }, true)}
         >
           <option value="">Todas las carreras</option>
-          {carreras.map((c) => (
+          {(carreras.data ?? []).map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}
         </select>
@@ -210,26 +160,12 @@ export function EstudiantesPage() {
         )}
       </div>
 
-      <Card title={`Estudiantes (${ordenadas.length})`}>
-        {isPending && (
-          <div className="table-scroll">
-            <table className="data-table" aria-label="Cargando estudiantes">
-              <tbody>
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <tr className="skeleton-row" key={i}>
-                    <td><div className="skeleton-bar" /></td>
-                    <td><div className="skeleton-bar" /></td>
-                    <td><div className="skeleton-bar" /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+      <Card title={`Estudiantes (${total})`}>
+        {isPending && <Spinner texto="Cargando estudiantes…" />}
         {isError && (
           <EmptyState
             titulo="No se pudieron cargar los estudiantes"
-            detalle="Verificá VITE_API_URL o activá VITE_USE_MOCKS=true."
+            detalle="No se pudo conectar con el servidor. Verifica que el backend esté en ejecución."
             accion={
               <Button type="button" onClick={() => void refetch()}>
                 Reintentar
@@ -237,14 +173,14 @@ export function EstudiantesPage() {
             }
           />
         )}
-        {!isPending && !isError && filas.length === 0 && (
+        {!isPending && !isError && total === 0 && !(q || carrera || estado) && (
           <EmptyState
             titulo="No hay estudiantes"
             detalle="Registrá el primero para empezar."
             accion={<Link to={ROUTES.nuevoEstudiante}>+ Nuevo estudiante</Link>}
           />
         )}
-        {!isPending && !isError && filas.length > 0 && paginaFilas.length === 0 && (
+        {!isPending && !isError && total === 0 && (q || carrera || estado) && (
           <EmptyState
             titulo="Sin resultados para los filtros"
             detalle="Probá con otra búsqueda o limpiá los filtros."
@@ -255,7 +191,7 @@ export function EstudiantesPage() {
             }
           />
         )}
-        {!isPending && !isError && paginaFilas.length > 0 && (
+        {!isPending && !isError && filas.length > 0 && (
           <>
             <div className="table-scroll hide-mobile">
               <table className="data-table">
@@ -270,47 +206,53 @@ export function EstudiantesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginaFilas.map((r) => (
-                    <tr key={r.id} onClick={() => navigate(ROUTES.detalleEstudiante(r.id))} style={{ cursor: "pointer" }}>
-                      <td>{r.codigo}</td>
-                      <td>{r.nombre}</td>
-                      <td>{r.carrera}</td>
-                      <td>{r.estadoBeca}</td>
-                      <td>{r.puntaje === null ? "-" : formatPuntaje(r.puntaje)}</td>
-                      <td onClick={(e) => e.stopPropagation()}>
-                        <span className="row-actions">
-                          <Link to={ROUTES.detalleEstudiante(r.id)}>Ver</Link>
-                          <Link to={ROUTES.editarEstudiante(r.id)}>Editar</Link>
-                          <Link to={ROUTES.evaluacionPorId(r.id)}>Evaluar</Link>
-                          <button className="link-btn danger" type="button" onClick={() => setEliminarId(r.id)}>
-                            Eliminar
-                          </button>
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {filas.map((r) => {
+                    const id = r.id_estudiante ?? 0;
+                    return (
+                      <tr key={id} onClick={() => navigate(ROUTES.detalleEstudiante(id))} style={{ cursor: "pointer" }}>
+                        <td>{codigoEstudiante(r.id_estudiante)}</td>
+                        <td>{nombreCompleto(r)}</td>
+                        <td>{r.carrera ?? "-"}</td>
+                        <td>{r.estado_beca}</td>
+                        <td>{r.puntaje_final === null ? "-" : formatPuntaje(r.puntaje_final)}</td>
+                        <td onClick={(e) => e.stopPropagation()}>
+                          <span className="row-actions">
+                            <Link to={ROUTES.detalleEstudiante(id)}>Ver</Link>
+                            <Link to={ROUTES.editarEstudiante(id)}>Editar</Link>
+                            <Link to={ROUTES.evaluacionPorId(id)}>Evaluar</Link>
+                            <button className="link-btn danger" type="button" onClick={() => setEliminarId(id)}>
+                              Eliminar
+                            </button>
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
             <div className="student-cards">
-              {paginaFilas.map((r) => (
-                <div className="student-card" key={r.id}>
-                  <strong>{r.nombre}</strong>
-                  <span className="muted">{r.codigo} · {r.carrera}</span>
-                  <span>Estado beca: {r.estadoBeca} · Puntaje: {r.puntaje === null ? "-" : formatPuntaje(r.puntaje)}</span>
-                  <span className="row-actions">
-                    <Link to={ROUTES.detalleEstudiante(r.id)}>Ver</Link>
-                    <Link to={ROUTES.editarEstudiante(r.id)}>Editar</Link>
-                    <Link to={ROUTES.evaluacionPorId(r.id)}>Evaluar</Link>
-                    <button className="link-btn danger" type="button" onClick={() => setEliminarId(r.id)}>
-                      Eliminar
-                    </button>
-                  </span>
-                </div>
-              ))}
+              {filas.map((r) => {
+                const id = r.id_estudiante ?? 0;
+                return (
+                  <div className="student-card" key={id}>
+                    <strong>{nombreCompleto(r)}</strong>
+                    <span className="muted">{codigoEstudiante(r.id_estudiante)} · {r.carrera ?? "-"}</span>
+                    <span>Estado beca: {r.estado_beca} · Puntaje: {r.puntaje_final === null ? "-" : formatPuntaje(r.puntaje_final)}</span>
+                    <span className="row-actions">
+                      <Link to={ROUTES.detalleEstudiante(id)}>Ver</Link>
+                      <Link to={ROUTES.editarEstudiante(id)}>Editar</Link>
+                      <Link to={ROUTES.evaluacionPorId(id)}>Evaluar</Link>
+                      <button className="link-btn danger" type="button" onClick={() => setEliminarId(id)}>
+                        Eliminar
+                      </button>
+                    </span>
+                  </div>
+                );
+              })}
             </div>
             <div className="pagination">
-              <span>Mostrando {desde}–{hasta} de {ordenadas.length}</span>
+              <span>Mostrando {desde}–{hasta} de {total}</span>
               <select
                 className="input"
                 aria-label="Filas por página"
@@ -324,16 +266,16 @@ export function EstudiantesPage() {
               <Button
                 variant="secondary"
                 type="button"
-                disabled={paginaActual <= 1}
-                onClick={() => cambiar({ pagina: String(paginaActual - 1) })}
+                disabled={pagina <= 1}
+                onClick={() => cambiar({ pagina: String(pagina - 1) })}
               >
                 Anterior
               </Button>
               <Button
                 variant="secondary"
                 type="button"
-                disabled={paginaActual >= totalPaginas}
-                onClick={() => cambiar({ pagina: String(paginaActual + 1) })}
+                disabled={pagina >= totalPaginas}
+                onClick={() => cambiar({ pagina: String(pagina + 1) })}
               >
                 Siguiente
               </Button>
@@ -345,7 +287,7 @@ export function EstudiantesPage() {
       {eliminarId !== null && (
         <ConfirmDialog
           titulo="Eliminar estudiante"
-          mensaje="Se eliminará al estudiante y sus datos locales. Esta acción no se puede deshacer. ¿Continuar?"
+          mensaje="Se eliminará al estudiante y sus datos relacionados. Esta acción no se puede deshacer. ¿Continuar?"
           textoConfirmar="Eliminar"
           onConfirmar={() => eliminar.mutate(eliminarId)}
           onCancelar={() => setEliminarId(null)}

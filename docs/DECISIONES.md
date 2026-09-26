@@ -27,3 +27,16 @@ Registro de decisiones tomadas por falta de información o por conflicto entre f
 - **D23 `/evaluacion/:idEstudiante` provisional.** Reutiliza la vista actual con preselección; Prompt 3 la reemplazará por la evaluación dedicada.
 - **D24 Filtros/orden/paginación no están en el PNG** pero el encargo los exige: columnas y textos del PNG intactos; solo se agrega la barra de herramientas.
 - **D25 Sin Exportar CSV.** El PNG de gestión no lo muestra; la exportación queda para el módulo de reportes.
+- **D26 SQLite local.** Los diagramas mencionan MySQL pero no hay servidor disponible: Prisma con SQLite (`dev.db`, sin instalar nada en Windows). Tipos portables; cambio a MySQL/PostgreSQL solo con `provider` + `DATABASE_URL`.
+- **D27 Prefijo `/api`.** El YAML usa rutas sin prefijo; la API sirve bajo `/api` y el frontend configura la base con el prefijo.
+- **D28 Sin autenticación.** Solo se menciona "personal autorizado" (sin pantalla de login en prototipos ni endpoints en el YAML): modelo `Usuario` creado, sin endpoints de auth ni rutas protegidas.
+- **D29 Modelo extendido.** CI/correo/código únicos y catálogos (Carrera, TipoBeca, Convocatoria, Criterio, Documento, Evento, Asignacion) exceden `script_bd.sql`: se implementan por exigencia del encargo, documentados aquí.
+- **D30 Motor con valores de prototipos.** Pesos 30/15/25/15/15 y umbrales ≥80/60–79/<60 (PLAN §h); no los valores de referencia del encargo.
+- **D31 Configuración y Resultados fuera de prototipos.** Ítems agregados al sidebar (marcados sin `*` por ser funcionales) por exigencia del encargo.
+- **D32 Evaluar-todos con criterios derivados** (rendimiento=promedio, asistencia 90, situación inversa al ingreso, carga 70, vulnerable 60): no hay datos por criterio almacenados.
+- **D33 Filtros derivados en memoria.** `q/carrera/semestre` van en SQL; `estado` y orden por puntaje se resuelven en el servicio (dataset pequeño).
+- **D34 Evaluaciones globales.** Sin FK evaluación-convocatoria en docs: `evaluar-todos` evalúa pendientes globales; la convocatoria solo aplica a asignaciones.
+- **D35 `GET /api/becas` extra.** No está en el YAML pero la UI de resultados lo necesita.
+- **D36 Catálogos solo lectura en mock.** Crear/editar/eliminar catálogos requiere backend real.
+- **D37 Puerto frontend 5173** (antes 8080) para el arranque conjunto.
+- **D38 Bug `formatPuntaje`.** 74.0 se mostraba como "74.": corregido a siempre un decimal mínimo (detectado por test).

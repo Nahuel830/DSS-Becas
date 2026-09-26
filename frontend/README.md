@@ -4,17 +4,31 @@ Aplicación web del Sistema de Soporte a Decisiones para becas (React 18 + TypeS
 
 ## Requisitos
 
-Node 20+ y npm.
+Node 20+ y npm. Backend en `http://localhost:3001` (ver `../backend/README.md`).
 
 ## Instalación
 
 ```bash
 cp .env.example .env
 npm install
-npm run dev        # http://localhost:8080
+npm run dev        # http://localhost:5173
 npm run typecheck
 npm run build
+npm test           # Vitest (utils y resumen)
 ```
+
+Desde la raíz: `npm run setup` y `npm run dev` (levanta backend + frontend).
+
+## Variables de entorno
+
+| Variable | Ejemplo | Descripción |
+|----------|---------|-------------|
+| `VITE_API_URL` | `http://localhost:3001/api` | Base del backend (con prefijo `/api`) |
+| `VITE_USE_MOCKS` | `false` | `true` → mocks en localStorage (demo); `false` → API real |
+
+## Scripts
+
+`dev` (puerto 5173) · `build` · `preview` · `typecheck` (`tsc --noEmit`) · `test` (`vitest run`).
 
 ## Variables de entorno
 
@@ -38,10 +52,12 @@ npm run build
 - `/estudiantes/nuevo` y `/estudiantes/:id/editar` ← `nuevo-estudiante.png` (formulario `POST /estudiantes`)
 - `/estudiantes/:idEstudiante` ← `detalle-estudiante.png` (ficha + criterios + historial)
 - `/evaluaciones/nueva` y `/evaluacion/:idEstudiante` ← `evaluacion-dss.png` (`POST /evaluaciones`)
-- `/becas` (sin PNG: lista de becas), `/seguimiento`, `/reportes`, `/administracion` (placeholders)
+- `/becas` — ranking, cupos/presupuesto, generar/revocar asignación, exportar CSV/PDF
+- `/configuracion` — catálogos (carreras, tipos de beca, convocatorias, criterios) con pestañas
+- `/seguimiento`, `/reportes`, `/administracion` (placeholders)
 
 Notas: sin backend los servicios usan mocks (`live:false`); umbrales DSS ≥80/60–79/<60 (ver `../docs/DECISIONES.md`).
 
 ## Datos de prueba
 
-Con `VITE_USE_MOCKS=true` los datos (30 estudiantes) se guardan en localStorage (`dss-becas-db`): altas, ediciones, bajas y evaluaciones persisten al recargar y el dashboard se actualiza solo. Para volver a los datos iniciales: avatar "PB" (arriba a la derecha) → "Restablecer datos de prueba" → confirmar.
+Con `VITE_USE_MOCKS=true` los datos (30 estudiantes) se guardan en localStorage (`dss-becas-db`): altas, ediciones, bajas y evaluaciones persisten al recargar y el dashboard se actualiza solo. Con el backend (`false`), "Restablecer datos de prueba" llama a `POST /api/dev/reset`. Para volver a los datos iniciales: avatar "PB" (arriba a la derecha) → "Restablecer datos de prueba" → confirmar. Base real visible con `npm run db:studio` desde `../backend`.

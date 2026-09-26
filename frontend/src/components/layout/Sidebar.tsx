@@ -1,4 +1,4 @@
-import { Award, ClipboardCheck, FileText, LayoutDashboard, LineChart, Settings, Users } from "lucide-react";
+import { Award, ClipboardCheck, FileText, LayoutDashboard, LineChart, Settings, SlidersHorizontal, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { ROUTES } from "../../routing/routes";
 
@@ -10,6 +10,7 @@ const ITEMS = [
   { to: ROUTES.seguimiento, texto: "Seguimiento*", Icono: LineChart, pendiente: true },
   { to: ROUTES.reportes, texto: "Reportes*", Icono: FileText, pendiente: true },
   { to: ROUTES.administracion, texto: "Administración*", Icono: Settings, pendiente: true },
+  { to: ROUTES.configuracion, texto: "Configuración", Icono: SlidersHorizontal, pendiente: false },
 ];
 
 /** Navegación lateral (diagrama-navegacion.png + sidebar de los mocks). */

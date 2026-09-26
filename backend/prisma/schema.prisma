@@ -1,0 +1,167 @@
+// Modelo de datos DSS-Becas.
+// Motor: SQLite en local (sin servidor). Para MySQL/PostgreSQL cambiar
+// provider a "mysql"/"postgresql" y DATABASE_URL (ver D26). Tipos elegidos
+// portables (Int autoincremental, String, Float, Boolean, DateTime).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Estudiante {
+  id_estudiante        Int         @id @default(autoincrement())
+  nombre               String
+  apellido             String
+  ci                   String?     @unique
+  fecha_nacimiento     String?
+  genero               String?
+  telefono             String?
+  correo               String?     @unique
+  direccion            String?
+  ciudad               String?
+  carrera              String
+  codigo_universitario String?     @unique
+  facultad             String?
+  semestre             Int?
+  promedio             Float
+  materias_aprobadas   Int?
+  materias_reprobadas  Int?
+  anio_ingreso         Int?
+  ingreso_familiar     Float
+  integrantes_hogar    Int?
+  dependientes         Int?
+  tipo_vivienda        String?
+  procedencia          String?
+  discapacidad         String?
+  situacion_laboral    String?
+  motivo               String?
+  evaluaciones         Evaluacion[]
+  resultados           Resultado[]
+  becas                Beca[]
+  documentos           Documento[]
+  eventos              Evento[]
+  asignaciones         Asignacion[]
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+}
+
+model Evaluacion {
+  id_evaluacion     Int        @id @default(autoincrement())
+  id_estudiante     Int
+  estudiante        Estudiante @relation(fields: [id_estudiante], references: [id_estudiante], onDelete: Cascade)
+  fecha             String
+  puntaje_academico Float
+  puntaje_social    Float
+  puntaje_final     Float
+  createdAt         DateTime   @default(now())
+
+  @@index([id_estudiante])
+}
+
+model Resultado {
+  id_resultado  Int        @id @default(autoincrement())
+  id_estudiante Int        @unique
+  estudiante    Estudiante @relation(fields: [id_estudiante], references: [id_estudiante], onDelete: Cascade)
+  resultado     String
+}
+
+model Beca {
+  id_beca       Int        @id @default(autoincrement())
+  id_estudiante Int
+  estudiante    Estudiante @relation(fields: [id_estudiante], references: [id_estudiante], onDelete: Cascade)
+  nombre_beca   String
+  tipo          String
+  monto         Float
+  estado        String
+
+  @@index([id_estudiante])
+}
+
+model Carrera {
+  id       Int     @id @default(autoincrement())
+  nombre   String  @unique
+  facultad String?
+  activa   Boolean @default(true)
+}
+
+model TipoBeca {
+  id          Int          @id @default(autoincrement())
+  nombre      String       @unique
+  descripcion String?
+  monto       Float
+  cupos       Int
+  activa      Boolean      @default(true)
+  asignaciones Asignacion[]
+}
+
+model Convocatoria {
+  id           Int          @id @default(autoincrement())
+  nombre       String
+  gestion      String
+  inicio       String?
+  fin          String?
+  estado       String       @default("Abierta")
+  presupuesto  Float        @default(0)
+  asignaciones Asignacion[]
+}
+
+model Criterio {
+  id          Int     @id @default(autoincrement())
+  nombre      String  @unique
+  descripcion String?
+  peso        Float
+  tipo        String  @default("beneficio")
+  activo      Boolean @default(true)
+}
+
+model Documento {
+  id            Int        @id @default(autoincrement())
+  id_estudiante Int
+  estudiante    Estudiante @relation(fields: [id_estudiante], references: [id_estudiante], onDelete: Cascade)
+  nombre        String
+  tamanio       Int
+  mime          String
+  ruta          String
+  createdAt     DateTime   @default(now())
+
+  @@index([id_estudiante])
+}
+
+model Evento {
+  id_evento     Int         @id @default(autoincrement())
+  id_estudiante Int?
+  estudiante    Estudiante? @relation(fields: [id_estudiante], references: [id_estudiante], onDelete: Cascade)
+  fecha         DateTime    @default(now())
+  tipo          String
+  detalle       String
+
+  @@index([id_estudiante])
+}
+
+model Asignacion {
+  id               Int          @id @default(autoincrement())
+  id_estudiante    Int
+  estudiante       Estudiante   @relation(fields: [id_estudiante], references: [id_estudiante], onDelete: Cascade)
+  id_convocatoria  Int
+  convocatoria     Convocatoria @relation(fields: [id_convocatoria], references: [id], onDelete: Restrict)
+  id_tipo_beca     Int
+  tipoBeca         TipoBeca     @relation(fields: [id_tipo_beca], references: [id], onDelete: Restrict)
+  puntaje          Float
+  estado           String       @default("Aprobada")
+  createdAt        DateTime     @default(now())
+
+  @@unique([id_estudiante, id_convocatoria, id_tipo_beca])
+}
+
+// Documentada en el ER, sin autenticación implementada (ver D28).
+model Usuario {
+  id_usuario Int      @id @default(autoincrement())
+  nombre     String
+  correo     String   @unique
+  rol        String
+  createdAt  DateTime @default(now())
+}

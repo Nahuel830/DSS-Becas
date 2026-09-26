@@ -1,6 +1,6 @@
 # AGENTS.md — DSS-Becas
 
-> Docs + UI prototypes + `frontend/` app (React 18+TS+Vite 5, Router 6, TanStack Query 5, recharts, lucide-react, clsx; ver `docs/frontend/plan_frontend.md` y `docs/PLAN_IMPLEMENTACION.md`). 6 vistas implementadas (dashboard, gestión, nuevo, detalle, evaluación, becas) + placeholders; sin backend (mocks de 30 estudiantes con `VITE_USE_MOCKS=true`), ni tests/lint/CI. Comandos verificados en `frontend/`: `npm install`, `npm run dev` (:8080), `npm run typecheck`, `npm run build`. Env: `VITE_API_URL`, `VITE_USE_MOCKS` (ver `.env.example`).
+> Docs + UI prototypes + `frontend/` app (React 18+TS+Vite 5, Router 6, TanStack Query 5, recharts, lucide-react, clsx; ver `docs/frontend/plan_frontend.md` y `docs/PLAN_IMPLEMENTACION.md`). 6 vistas implementadas (dashboard, gestión, nuevo, detalle, evaluación, becas) + placeholders; sin backend (mocks de 30 estudiantes con `VITE_USE_MOCKS=true`), ni tests/lint/CI. Comandos verificados en `frontend/`: `npm install`, `npm run dev` (:5173), `npm run typecheck`, `npm run build`, `npm test`. Env: `VITE_API_URL` (http://localhost:3001/api), `VITE_USE_MOCKS` (ver `.env.example`). Arranque conjunto desde raíz: `npm run setup`, `npm run dev` (backend :3001 + frontend :5173).
 
 ## Sources of truth (trust in this order)
 

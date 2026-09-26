@@ -12,11 +12,13 @@ import { PageHeader } from "../components/PageHeader";
 import { Spinner } from "../components/Spinner";
 import type { EstadoEstudiante } from "../models/domain";
 import { ROUTES } from "../routing/routes";
+import { apiClient } from "../services/api/client";
 import { fetchDashboard } from "../services/api/dashboard";
 import { estudiantesApi } from "../services/api/estudiantes";
 import { resultadosApi } from "../services/api/resultados";
 import { db } from "../services/api/db";
 import { MOCK_CRITERIOS } from "../services/api/mocks";
+import type { EventoHistorial } from "../services/api/types";
 import { useToast } from "../state/ToastContext";
 import { clasificarPuntaje, codigoEstudiante, getEvaluacion, nombreCompleto } from "../utils/dss";
 import { formatFecha, formatMonedaBs, formatPuntaje } from "../utils/format";
@@ -50,6 +52,11 @@ export function DetalleEstudiantePage() {
     queryKey: ["resultado", id],
     queryFn: () => resultadosApi.getByEstudianteConFallback(id),
     enabled: valido,
+  });
+  const hist = useQuery({
+    queryKey: ["historial", id],
+    queryFn: () => apiClient.get<EventoHistorial[]>(`/estudiantes/${id}/historial`),
+    enabled: valido && !!dash.data?.live,
   });
 
   const eliminar = useMutation({
@@ -96,10 +103,10 @@ export function DetalleEstudiantePage() {
 
   const evaluacion = getEvaluacion(dash.data.evaluaciones, id);
   const puntaje = evaluacion?.puntaje_final ?? null;
-  const beca = db.getAll("becas").find((b) => b.id_estudiante === id);
+  const beca = dash.data.becas.find((b) => b.id_estudiante === id);
   // Criterios mock solo en modo demostración (sin endpoint en openapi.yaml).
   const criterios = dash.data.live ? undefined : MOCK_CRITERIOS[id];
-  const historial = db.eventosDe(id);
+  const historial: EventoHistorial[] = dash.data.live ? (hist.data ?? []) : db.eventosDe(id);
 
   const etiquetado = res.data.data?.resultado;
   const estado: EstadoEstudiante =

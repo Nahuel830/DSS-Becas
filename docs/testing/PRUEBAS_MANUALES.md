@@ -45,3 +45,22 @@ Pasos: tras CP-05, recargar la página (el estudiante 31 sigue); avatar PB → R
 ## CP-11 Estudiante inexistente
 
 Pasos: abrir `/estudiantes/9999`. Esperado: "Estudiante no encontrado" con botón al listado.
+
+## CP-12 Asignación y reportes (RF-07, RF-08)
+
+Pasos: con backend en marcha, ir a `/becas`; elegir convocatoria "2025-I" y tipo "Excelencia"; "Generar asignación". Esperado: Toast con cantidad, ranking con marcas, tarjetas de cupos/presupuesto actualizadas, fila en Asignaciones. Luego Exportar CSV y PDF (archivos descargados con encabezado y fecha).
+
+## CP-13 Revocar asignación (RF-07)
+
+Pasos: en Asignaciones, Revocar → confirmar. Esperado: Toast, cupos liberados, evento en el historial del estudiante.
+
+## CP-14 Recorrido completo de aceptación
+
+1. Avatar PB → Restablecer datos (quedan 30 estudiantes).
+2. Revisar `/dashboard` (27 evaluados, top 5, barras).
+3. Registrar estudiante: Ana Prueba, CI `11223344`, Derecho, promedio 91, ingreso 1500 → **Recomendado** (≈86.4 con criterios 92/90/88/80/75).
+4. Registrar estudiante: Baja Nota, CI `44332211`, promedio 40, ingreso 5500 → **No recomendado** (≈41.3 con criterios 45/60/30/40/35).
+5. Evaluar a ambos desde su detalle (botón "Evaluar con DSS").
+6. En `/becas`, generar asignación Excelencia: Ana queda posicionada arriba.
+7. Exportar ranking a CSV y abrirlo.
+8. Comprobar dashboard actualizado; detener backend (`Ctrl+C`) y volver a iniciar: todo sigue guardado (SQLite).

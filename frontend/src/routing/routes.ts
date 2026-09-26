@@ -8,6 +8,7 @@ export const ROUTES = {
   nuevaEvaluacion: "/evaluaciones/nueva",
   evaluacionPorId: (id: number | string = ":idEstudiante") => `/evaluacion/${id}`,
   becas: "/becas",
+  configuracion: "/configuracion",
   seguimiento: "/seguimiento",
   reportes: "/reportes",
   administracion: "/administracion",

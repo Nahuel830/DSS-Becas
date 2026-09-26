@@ -10,16 +10,17 @@
 - [x] 4 Gestión de estudiantes — completado en este encargo (filtros en URL, orden, paginación, baja con confirmación)
 - [x] 5 Nuevo estudiante — completado en este encargo (alta con validaciones; reutilizada para edición)
 - [x] 6 Detalle de estudiante — completado en este encargo (ficha, acciones, evaluación, historial)
-- [x] 7 Evaluación DSS — implementada en encargo previo (`EvaluacionPage.tsx`); ahora persiste en db y preselecciona desde `/evaluacion/:idEstudiante`
-- [ ] 8 Pruebas — pendiente (no hay tests/lint/CI en el repo)
-- [ ] 9 Cierre — pendiente
+- [x] 7 Evaluación DSS — persiste en backend; preselección desde `/evaluacion/:idEstudiante`
+- [x] 8 Backend y base de datos — Express+Prisma+Zod+SQLite, seed idempotente, tests API (8/8)
+- [x] 9 Asignación de becas y reportes — `/becas` (ranking, cupos/presupuesto, generar/revocar, CSV/PDF) y `/configuracion` (catálogos)
+- [x] 10 Pruebas — backend 8/8 y frontend 9/9 con Vitest; sin lint/CI
+- [x] 11 Cierre — este encargo
 
 ## Pendientes (siguientes módulos)
 
-- Verificación con backend real (`VITE_USE_MOCKS=false`): altas, ediciones, bajas y evaluaciones contra la API.
 - Módulos Seguimiento, Reportes y Administración: solo placeholders (sin endpoint ni mock).
-- Rutas nuevas de este encargo: `/estudiantes/:id/editar`, `/evaluacion/:idEstudiante` (la vista de evaluación dedicada de Prompt 3 las reutilizará).
-- Sin tests, lint ni CI.
+- Login/roles: no implementado (D28).
+- Sin lint ni CI.
 
 ## a) Resumen del sistema
 

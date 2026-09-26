@@ -1,6 +1,7 @@
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { ConfirmDialog } from "../ConfirmDialog";
+import { USE_MOCKS, apiClient } from "../../services/api/client";
 import { db } from "../../services/api/db";
 import { useToast } from "../../state/ToastContext";
 
@@ -10,9 +11,17 @@ export function Header({ alMenu }: { alMenu: () => void }) {
   const [confirmando, setConfirmando] = useState(false);
   const toast = useToast();
 
-  const restablecer = () => {
-    db.reset();
-    toast.exito("Datos de prueba restablecidos.");
+  const restablecer = async () => {
+    try {
+      if (USE_MOCKS) {
+        db.reset();
+      } else {
+        await apiClient.post<unknown>("/dev/reset", {});
+      }
+      toast.exito("Datos de prueba restablecidos.");
+    } catch {
+      toast.error("No se pudieron restablecer los datos.");
+    }
     setConfirmando(false);
     setMenuAbierto(false);
     window.location.reload();

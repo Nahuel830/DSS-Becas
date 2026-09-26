@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { Button } from "../components/Button";
+import { Link, useNavigate, useParams } from "react-router-dom";import { Button } from "../components/Button";
 import { Card } from "../components/Card";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { EmptyState } from "../components/EmptyState";
@@ -11,6 +10,9 @@ import { PageHeader } from "../components/PageHeader";
 import { Spinner } from "../components/Spinner";
 import { TIPO_BECA, type DocumentoAdjunto, type EstudianteExtendido } from "../models/domain";
 import { ROUTES } from "../routing/routes";
+import { ApiError } from "../services/api/client";
+import { catalogosApi } from "../services/api/catalogos";
+import { documentosApi } from "../services/api/documentos";
 import { fetchDashboard } from "../services/api/dashboard";
 import { estudiantesApi } from "../services/api/estudiantes";
 import { useToast } from "../state/ToastContext";
@@ -34,6 +36,20 @@ const INICIAL: FormState = {
 };
 
 type Errores = Partial<Record<keyof FormState, string>>;
+
+/** Campos del backend → campos del formulario (errores por campo). */
+const MAPA_SERVIDOR: Record<string, keyof FormState> = {
+  nombre: "nombre",
+  apellido: "apellido",
+  ci: "ci",
+  fecha_nacimiento: "fechaNacimiento",
+  correo: "correo",
+  carrera: "carrera",
+  promedio: "promedio",
+  semestre: "semestre",
+  ingreso_familiar: "ingreso",
+  integrantes_hogar: "integrantesHogar",
+};
 
 const CI_RE = /^[0-9]+(-[0-9A-Za-z]{1,2})?$/;
 const CORREO_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -135,8 +151,11 @@ export function NuevoEstudiantePage() {
 
   const [form, setForm] = useState<FormState>(INICIAL);
   const [documentos, setDocumentos] = useState<DocumentoAdjunto[]>([]);
+  const [archivos, setArchivos] = useState<File[]>([]);
+  const [progreso, setProgreso] = useState<number | null>(null);
   const [tocados, setTocados] = useState<Partial<Record<keyof FormState, boolean>>>({});
   const [enviado, setEnviado] = useState(false);
+  const [erroresServidor, setErroresServidor] = useState<Errores>({});
   const [confirmandoSalida, setConfirmandoSalida] = useState(false);
   const [base, setBase] = useState<string>("");
 
@@ -146,6 +165,11 @@ export function NuevoEstudiantePage() {
     enabled: modoEdicion && Number.isInteger(id) && id > 0,
   });
   const lista = useQuery({ queryKey: ["dashboard"], queryFn: fetchDashboard });
+  const carrerasApi = useQuery({ queryKey: ["cfg-carreras"], queryFn: catalogosApi.carrerasCrud.listar });
+  const tiposApi = useQuery({ queryKey: ["cfg-tipos"], queryFn: catalogosApi.tiposBeca.listar });
+  const carrerasSugeridas = (carrerasApi.data ?? []).map((c) => c.nombre);
+  const tiposSugeridos = (tiposApi.data ?? []).map((t) => t.nombre);
+  const tiposBeca = tiposSugeridos.length > 0 ? tiposSugeridos : [...TIPO_BECA];
 
   useEffect(() => {
     if (modoEdicion && original.data) {
@@ -157,9 +181,12 @@ export function NuevoEstudiantePage() {
   }, [modoEdicion, original.data]);
 
   const errores = useMemo(
-    () => validar(form, lista.data?.estudiantes ?? [], modoEdicion ? id : undefined),
+    () => ({
+      ...validar(form, lista.data?.estudiantes ?? [], modoEdicion ? id : undefined),
+      ...erroresServidor,
+    }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [form, lista.data, modoEdicion, id],
+    [form, lista.data, modoEdicion, id, erroresServidor],
   );
   const sucio = JSON.stringify({ f: form, d: documentos }) !== (modoEdicion ? base : JSON.stringify({ f: INICIAL, d: [] }));
   const verError = (k: keyof FormState) => (enviado || tocados[k] ? errores[k] : undefined);
@@ -194,22 +221,51 @@ export function NuevoEstudiantePage() {
         motivo: form.motivo.trim() || undefined,
         documentos,
       };
+      let destinoId: number;
       if (modoEdicion) {
         await estudiantesApi.update(id, payload);
-        return id;
+        destinoId = id;
+      } else {
+        const creado = await estudiantesApi.create(payload);
+        destinoId = creado.id_estudiante ?? 0;
+        if (!destinoId) throw new Error("Sin id generado");
       }
-      const creado = await estudiantesApi.create(payload);
-      const nuevoId = creado.id_estudiante ?? 0;
-      if (!nuevoId) throw new Error("Sin id generado");
-      return nuevoId;
+      // Subida real de archivos pendientes (en mock ya viajan en el payload).
+      if (archivos.length > 0) {
+        let i = 0;
+        for (const archivo of archivos) {
+          setProgreso(Math.round((i / archivos.length) * 100));
+          const subido = await documentosApi.subir(destinoId, archivo, (pct) =>
+            setProgreso(Math.round(((i + pct / 100) / archivos.length) * 100)),
+          );
+          setDocumentos((d) => [...d, { nombre: subido.nombre, tamanio: subido.tamanio }]);
+          i += 1;
+        }
+        setProgreso(100);
+      }
+      return destinoId;
     },
     onSuccess: (nuevoId) => {
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["estudiante", nuevoId] });
+      queryClient.invalidateQueries({ queryKey: ["estudiantes"] });
       toast.exito(modoEdicion ? "Estudiante actualizado." : "Estudiante registrado.");
       navigate(`/estudiantes/${nuevoId}`);
     },
-    onError: () => toast.error("No se pudo guardar al estudiante."),
+    onError: (e: unknown) => {
+      if (e instanceof ApiError && e.detalles) {
+        const deServidor: Errores = {};
+        for (const [campo, mensaje] of Object.entries(e.detalles)) {
+          const local = MAPA_SERVIDOR[campo];
+          if (local) deServidor[local] = mensaje;
+        }
+        if (Object.keys(deServidor).length > 0) {
+          setErroresServidor((prev) => ({ ...prev, ...deServidor }));
+          setEnviado(true);
+        }
+      }
+      toast.error(e instanceof Error ? e.message : "No se pudo guardar al estudiante.");
+    },
   });
 
   const set =
@@ -222,7 +278,9 @@ export function NuevoEstudiantePage() {
   const guardar = (ev: React.FormEvent) => {
     ev.preventDefault();
     setEnviado(true);
-    if (Object.keys(errores).length > 0) {
+    setErroresServidor({});
+    const locales = validar(form, lista.data?.estudiantes ?? [], modoEdicion ? id : undefined);
+    if (Object.keys(locales).length > 0) {
       requestAnimationFrame(() => {
         const primero = document.querySelector(".field-error");
         const campo = primero?.closest(".field");
@@ -242,8 +300,15 @@ export function NuevoEstudiantePage() {
   const agregarDocumentos = (ev: React.ChangeEvent<HTMLInputElement>) => {
     const archivos = ev.target.files;
     if (!archivos) return;
-    setDocumentos((d) => [...d, ...[...archivos].map((a) => ({ nombre: a.name, tamanio: a.size }))]);
+    const nuevos = [...archivos];
+    setArchivos((a) => [...a, ...nuevos]);
+    setDocumentos((d) => [...d, ...nuevos.map((a) => ({ nombre: a.name, tamanio: a.size }))]);
     ev.target.value = "";
+  };
+
+  const quitarDocumento = (i: number) => {
+    setArchivos((a) => a.filter((_, j) => j !== i));
+    setDocumentos((d) => d.filter((_, j) => j !== i));
   };
 
   if (modoEdicion && (!Number.isInteger(id) || id <= 0)) {
@@ -309,7 +374,12 @@ export function NuevoEstudiantePage() {
               <input className="input" value={form.ciudad} onChange={set("ciudad")} />
             </FormField>
             <FormField label="Carrera *" error={verError("carrera")}>
-              <input className="input" value={form.carrera} onChange={set("carrera")} onBlur={tocar("carrera")} maxLength={100} />
+              <input className="input" list="carreras" value={form.carrera} onChange={set("carrera")} onBlur={tocar("carrera")} maxLength={100} />
+              <datalist id="carreras">
+                {carrerasSugeridas.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
             </FormField>
           </FormSection>
 
@@ -379,7 +449,7 @@ export function NuevoEstudiantePage() {
             <FormField label="Tipo de beca solicitada">
               <select className="input" value={form.tipoBeca} onChange={set("tipoBeca")}>
                 <option value="">Seleccionar…</option>
-                {TIPO_BECA.map((t) => (
+                {tiposBeca.map((t) => (
                   <option key={t} value={t}>{t}</option>
                 ))}
               </select>
@@ -400,7 +470,7 @@ export function NuevoEstudiantePage() {
                       <button
                         className="link-btn danger"
                         type="button"
-                        onClick={() => setDocumentos((docs) => docs.filter((_, j) => j !== i))}
+                        onClick={() => quitarDocumento(i)}
                       >
                         Quitar
                       </button>
@@ -411,6 +481,12 @@ export function NuevoEstudiantePage() {
             </FormField>
           </FormSection>
 
+          {progreso !== null && mutation.isPending && (
+            <p className="muted">Subiendo documentos… {progreso} %</p>
+          )}
+          {progreso !== null && mutation.isPending && (
+            <progress value={progreso} max={100} aria-label="Progreso de subida" />
+          )}
           <div className="form-actions">
             <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? "Guardando…" : modoEdicion ? "Guardar cambios" : "Guardar"}
