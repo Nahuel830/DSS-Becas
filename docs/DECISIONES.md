@@ -20,3 +20,10 @@ Registro de decisiones tomadas por falta de información o por conflicto entre f
 - **D16 Umbrales mandan sobre etiquetas del PNG.** El mock pinta "Ana Rojas 81.4 En revisión" pero la leyenda del propio PNG dice Recomendado ≥80: 81.4 se clasifica Recomendado (igual en gestión y detalle).
 - **D17 Mocks con forma exacta del contrato.** Aunque el encargo pide CI/semestre en mocks, `Estudiante` no los tiene: no se agregan campos fuera del contrato.
 - **D18 Sin GET /becas en el contrato.** `becasApi.list()` solo devuelve mock; en modo real (`VITE_USE_MOCKS=false`) propaga el error y la vista muestra Reintentar.
+- **D19 Persistencia en `services/api/db.ts`.** El encargo pide `mocks/db.ts`, pero AGENTS.md fija `services/api/` (D4): la db genérica localStorage (`getAll/getById/create/update/remove/reset/eventosDe`, clave `dss-becas-db`, siembra desde `mocks.ts`) vive ahí.
+- **D20 Menú en avatar PB.** El PNG solo muestra el avatar; se agregó menú mínimo con "Restablecer datos de prueba" + confirmación (función exigida sin ubicación definida).
+- **D21 Campos extendidos solo locales.** CI, género, contacto, facultad, semestre, hogar, procedencia, motivo, documentos, etc. se guardan en localStorage (`EstudianteExtendido`); a la API viaja solo el subconjunto del contrato.
+- **D22 Timestamps vía eventos.** Sin campos de fecha en el contrato: creación/edición/baja/evaluación quedan en el log de eventos con fecha ISO.
+- **D23 `/evaluacion/:idEstudiante` provisional.** Reutiliza la vista actual con preselección; Prompt 3 la reemplazará por la evaluación dedicada.
+- **D24 Filtros/orden/paginación no están en el PNG** pero el encargo los exige: columnas y textos del PNG intactos; solo se agrega la barra de herramientas.
+- **D25 Sin Exportar CSV.** El PNG de gestión no lo muestra; la exportación queda para el módulo de reportes.

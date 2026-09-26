@@ -34,10 +34,14 @@ npm run build
 ## Pantallas y su PNG
 
 - `/dashboard` ← `dashboard-dss.png` (KPI, ranking top 5, alertas, distribución recharts)
-- `/estudiantes` ← `gestion-estudiantes.png` (tabla + buscador)
-- `/estudiantes/nuevo` ← `nuevo-estudiante.png` (formulario `POST /estudiantes`)
+- `/estudiantes` ← `gestion-estudiantes.png` (tabla con buscador, filtros, orden, paginación, ver/editar/evaluar/eliminar)
+- `/estudiantes/nuevo` y `/estudiantes/:id/editar` ← `nuevo-estudiante.png` (formulario `POST /estudiantes`)
 - `/estudiantes/:idEstudiante` ← `detalle-estudiante.png` (ficha + criterios + historial)
-- `/evaluaciones/nueva` ← `evaluacion-dss.png` (`POST /evaluaciones`)
+- `/evaluaciones/nueva` y `/evaluacion/:idEstudiante` ← `evaluacion-dss.png` (`POST /evaluaciones`)
 - `/becas` (sin PNG: lista de becas), `/seguimiento`, `/reportes`, `/administracion` (placeholders)
 
 Notas: sin backend los servicios usan mocks (`live:false`); umbrales DSS ≥80/60–79/<60 (ver `../docs/DECISIONES.md`).
+
+## Datos de prueba
+
+Con `VITE_USE_MOCKS=true` los datos (30 estudiantes) se guardan en localStorage (`dss-becas-db`): altas, ediciones, bajas y evaluaciones persisten al recargar y el dashboard se actualiza solo. Para volver a los datos iniciales: avatar "PB" (arriba a la derecha) → "Restablecer datos de prueba" → confirmar.

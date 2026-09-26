@@ -20,7 +20,9 @@ export const router = createBrowserRouter([
       { path: ROUTES.estudiantes, element: <EstudiantesPage /> },
       { path: ROUTES.nuevoEstudiante, element: <NuevoEstudiantePage /> },
       { path: ROUTES.detalleEstudiante(), element: <DetalleEstudiantePage /> },
+      { path: ROUTES.editarEstudiante(), element: <NuevoEstudiantePage /> },
       { path: ROUTES.nuevaEvaluacion, element: <EvaluacionPage /> },
+      { path: ROUTES.evaluacionPorId(), element: <EvaluacionPage /> },
       { path: ROUTES.becas, element: <BecasPage /> },
       // Sin endpoint ni mock: placeholder hasta fase 2.
       { path: ROUTES.seguimiento, element: <PlaceholderPage title="Seguimiento" /> },

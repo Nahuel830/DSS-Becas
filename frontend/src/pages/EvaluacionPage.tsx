@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Card } from "../components/Card";
 import { EstadoBadge } from "../components/EstadoBadge";
 import { FormField } from "../components/FormField";
@@ -39,7 +39,8 @@ function parseScore(v: string): number | null {
 
 /** evaluacion-dss.png → /evaluaciones/nueva. POST /evaluaciones. */
 export function EvaluacionPage() {
-  const [idEstudiante, setIdEstudiante] = useState("");
+  const { idEstudiante: idPreseleccionado } = useParams();
+  const [idEstudiante, setIdEstudiante] = useState(idPreseleccionado ?? "");
   const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
   const [scores, setScores] = useState<Scores>(VACIO);
   const [error, setError] = useState("");

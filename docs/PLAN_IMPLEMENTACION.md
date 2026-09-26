@@ -7,18 +7,18 @@
 - [x] 1 Base y navegación — completado en este encargo (ver Módulo 2)
 - [x] 2 Modelo de datos — completado en este encargo (ver Módulo 3)
 - [x] 3 Dashboard — completado en este encargo (ver Módulo 4)
-- [x] 4 Gestión de estudiantes — implementada en encargo previo (`EstudiantesPage.tsx`); pendiente verificación con backend real
-- [x] 5 Nuevo estudiante — implementada en encargo previo (`NuevoEstudiantePage.tsx`); pendiente verificación con backend real
-- [x] 6 Detalle de estudiante — implementada en encargo previo (`DetalleEstudiantePage.tsx`); pendiente verificación con backend real
-- [x] 7 Evaluación DSS — implementada en encargo previo (`EvaluacionPage.tsx`); pendiente verificación con backend real
+- [x] 4 Gestión de estudiantes — completado en este encargo (filtros en URL, orden, paginación, baja con confirmación)
+- [x] 5 Nuevo estudiante — completado en este encargo (alta con validaciones; reutilizada para edición)
+- [x] 6 Detalle de estudiante — completado en este encargo (ficha, acciones, evaluación, historial)
+- [x] 7 Evaluación DSS — implementada en encargo previo (`EvaluacionPage.tsx`); ahora persiste en db y preselecciona desde `/evaluacion/:idEstudiante`
 - [ ] 8 Pruebas — pendiente (no hay tests/lint/CI en el repo)
 - [ ] 9 Cierre — pendiente
 
 ## Pendientes (siguientes módulos)
 
-- Gestión/Nuevo/Detalle/Evaluación existen y funcionan con mocks; falta pulido fino contra PNG y validación con backend real.
-- Sin backend: al conectarlo, retirar mocks por servicio (`VITE_USE_MOCKS=false`) y verificar cada vista en modo `live:true`.
-- Módulos Seguimiento, Reportes, Administración: solo placeholders (sin endpoint ni mock).
+- Verificación con backend real (`VITE_USE_MOCKS=false`): altas, ediciones, bajas y evaluaciones contra la API.
+- Módulos Seguimiento, Reportes y Administración: solo placeholders (sin endpoint ni mock).
+- Rutas nuevas de este encargo: `/estudiantes/:id/editar`, `/evaluacion/:idEstudiante` (la vista de evaluación dedicada de Prompt 3 las reutilizará).
 - Sin tests, lint ni CI.
 
 ## a) Resumen del sistema

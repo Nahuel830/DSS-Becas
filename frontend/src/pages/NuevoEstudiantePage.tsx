@@ -1,149 +1,377 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Button } from "../components/Button";
 import { Card } from "../components/Card";
+import { ConfirmDialog } from "../components/ConfirmDialog";
+import { EmptyState } from "../components/EmptyState";
 import { FormField } from "../components/FormField";
 import { FormSection } from "../components/FormSection";
 import { PageHeader } from "../components/PageHeader";
-import { TIPO_BECA } from "../models/domain";
+import { Spinner } from "../components/Spinner";
+import { TIPO_BECA, type DocumentoAdjunto, type EstudianteExtendido } from "../models/domain";
 import { ROUTES } from "../routing/routes";
-import { USE_MOCKS } from "../services/api/client";
+import { fetchDashboard } from "../services/api/dashboard";
 import { estudiantesApi } from "../services/api/estudiantes";
-import type { Estudiante } from "../services/api/types";
+import { useToast } from "../state/ToastContext";
 
 interface FormState {
-  nombre: string;
-  apellido: string;
-  carnet: string;
-  fechaNacimiento: string;
-  contacto: string;
-  carrera: string;
-  promedio: string;
-  asistencia: string;
-  semestre: string;
-  ingreso: string;
-  cargaFamiliar: string;
-  condicionVulnerable: string;
-  tipoBeca: string;
-  fechaSolicitud: string;
-  documentos: string;
+  nombre: string; apellido: string; ci: string; fechaNacimiento: string; genero: string;
+  telefono: string; correo: string; direccion: string; ciudad: string; carrera: string;
+  codigoUniversitario: string; facultad: string; semestre: string; promedio: string;
+  materiasAprobadas: string; materiasReprobadas: string; anioIngreso: string;
+  ingreso: string; integrantesHogar: string; dependientes: string; tipoVivienda: string;
+  procedencia: string; discapacidad: string; situacionLaboral: string;
+  tipoBeca: string; motivo: string; fechaSolicitud: string;
 }
 
 const INICIAL: FormState = {
-  nombre: "", apellido: "", carnet: "", fechaNacimiento: "", contacto: "", carrera: "",
-  promedio: "", asistencia: "", semestre: "", ingreso: "", cargaFamiliar: "",
-  condicionVulnerable: "", tipoBeca: "", fechaSolicitud: "", documentos: "",
+  nombre: "", apellido: "", ci: "", fechaNacimiento: "", genero: "", telefono: "",
+  correo: "", direccion: "", ciudad: "", carrera: "", codigoUniversitario: "", facultad: "",
+  semestre: "", promedio: "", materiasAprobadas: "", materiasReprobadas: "", anioIngreso: "",
+  ingreso: "", integrantesHogar: "", dependientes: "", tipoVivienda: "", procedencia: "",
+  discapacidad: "", situacionLaboral: "", tipoBeca: "", motivo: "", fechaSolicitud: "",
 };
 
-type Errores = Partial<Record<"nombre" | "apellido" | "carrera" | "promedio" | "ingreso", string>>;
+type Errores = Partial<Record<keyof FormState, string>>;
 
-/**
- * Valida SOLO los campos del contrato (openapi.yaml Estudiante + límites SQL).
- * El resto de campos del mock son UI-only y no se persisten (fase 1).
- */
-function validar(f: FormState): Errores {
+const CI_RE = /^[0-9]+(-[0-9A-Za-z]{1,2})?$/;
+const CORREO_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function edad(fechaISO: string): number | null {
+  const nac = new Date(`${fechaISO}T00:00:00`);
+  if (Number.isNaN(nac.getTime())) return null;
+  const hoy = new Date();
+  let e = hoy.getFullYear() - nac.getFullYear();
+  const m = hoy.getMonth() - nac.getMonth();
+  if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) e -= 1;
+  return e;
+}
+
+function enteroEnRango(v: string, min: number, max: number): boolean {
+  if (!v.trim()) return true;
+  const n = Number(v);
+  return Number.isInteger(n) && n >= min && n <= max;
+}
+
+/** Validaciones del Módulo 6 (contrato + reglas de negocio). */
+function validar(
+  f: FormState,
+  otros: EstudianteExtendido[],
+  idPropio?: number,
+): Errores {
   const e: Errores = {};
-  if (!f.nombre.trim()) e.nombre = "Requerido.";
+  const req = (v: string) => v.trim().length > 0;
+  if (!req(f.nombre)) e.nombre = "Requerido.";
   else if (f.nombre.trim().length > 100) e.nombre = "Máximo 100 caracteres.";
-  if (!f.apellido.trim()) e.apellido = "Requerido.";
+  if (!req(f.apellido)) e.apellido = "Requerido.";
   else if (f.apellido.trim().length > 100) e.apellido = "Máximo 100 caracteres.";
-  if (!f.carrera.trim()) e.carrera = "Requerida.";
+  if (!req(f.ci)) e.ci = "Requerido.";
+  else if (!CI_RE.test(f.ci.trim())) e.ci = "Formato inválido (solo números, con complemento opcional).";
+  else if (otros.some((o) => o.ci === f.ci.trim() && o.id_estudiante !== idPropio)) e.ci = "Este CI ya está registrado.";
+  if (!req(f.fechaNacimiento)) e.fechaNacimiento = "Requerida.";
+  else {
+    const a = edad(f.fechaNacimiento);
+    if (a === null) e.fechaNacimiento = "Fecha inválida.";
+    else if (a < 16 || a > 60) e.fechaNacimiento = "La edad debe estar entre 16 y 60 años.";
+  }
+  if (!req(f.carrera)) e.carrera = "Requerida.";
   else if (f.carrera.trim().length > 100) e.carrera = "Máximo 100 caracteres.";
-  if (!f.promedio.trim()) e.promedio = "Requerido.";
+  if (f.correo.trim() && !CORREO_RE.test(f.correo.trim())) e.correo = "Correo inválido.";
+  else if (
+    f.correo.trim() &&
+    otros.some((o) => o.correo?.toLowerCase() === f.correo.trim().toLowerCase() && o.id_estudiante !== idPropio)
+  ) e.correo = "Este correo ya está registrado.";
+  if (!req(f.promedio)) e.promedio = "Requerido.";
   else {
     const v = Number(f.promedio);
     if (!Number.isFinite(v) || v < 0 || v > 100) e.promedio = "Debe ser un número entre 0 y 100.";
   }
-  if (!f.ingreso.trim()) e.ingreso = "Requerido.";
+  if (!enteroEnRango(f.semestre, 1, 10)) e.semestre = "Debe ser un entero entre 1 y 10.";
+  if (!req(f.ingreso)) e.ingreso = "Requerido.";
   else {
     const v = Number(f.ingreso);
     if (!Number.isFinite(v) || v < 0) e.ingreso = "Debe ser un número mayor o igual a 0.";
   }
+  if (f.integrantesHogar.trim() && !enteroEnRango(f.integrantesHogar, 1, 30)) e.integrantesHogar = "Debe ser un entero mayor o igual a 1.";
+  if (!enteroEnRango(f.dependientes, 0, 30)) e.dependientes = "Debe ser un entero mayor o igual a 0.";
+  if (!enteroEnRango(f.materiasAprobadas, 0, 100)) e.materiasAprobadas = "Debe ser un entero mayor o igual a 0.";
+  if (!enteroEnRango(f.materiasReprobadas, 0, 100)) e.materiasReprobadas = "Debe ser un entero mayor o igual a 0.";
+  if (f.anioIngreso.trim() && !enteroEnRango(f.anioIngreso, 1980, new Date().getFullYear())) e.anioIngreso = "Año inválido.";
   return e;
 }
 
-/** nuevo-estudiante.png → /estudiantes/nuevo. POST /estudiantes. */
+function desdeEntidad(e: EstudianteExtendido): { form: FormState; documentos: DocumentoAdjunto[] } {
+  const txt = (v: string | number | undefined) => (v === undefined || v === null ? "" : String(v));
+  return {
+    form: {
+      ...INICIAL,
+      nombre: e.nombre ?? "", apellido: e.apellido ?? "", ci: e.ci ?? "",
+      fechaNacimiento: e.fecha_nacimiento ?? "", genero: e.genero ?? "", telefono: e.telefono ?? "",
+      correo: e.correo ?? "", direccion: e.direccion ?? "", ciudad: e.ciudad ?? "",
+      carrera: e.carrera ?? "", codigoUniversitario: e.codigo_universitario ?? "",
+      facultad: e.facultad ?? "", semestre: txt(e.semestre), promedio: txt(e.promedio),
+      materiasAprobadas: txt(e.materias_aprobadas), materiasReprobadas: txt(e.materias_reprobadas),
+      anioIngreso: txt(e.anio_ingreso), ingreso: txt(e.ingreso_familiar),
+      integrantesHogar: txt(e.integrantes_hogar), dependientes: txt(e.dependientes),
+      tipoVivienda: e.tipo_vivienda ?? "", procedencia: e.procedencia ?? "",
+      discapacidad: e.discapacidad ?? "", situacionLaboral: e.situacion_laboral ?? "",
+      tipoBeca: "", motivo: e.motivo ?? "", fechaSolicitud: "",
+    },
+    documentos: e.documentos ?? [],
+  };
+}
+
+const numOpcional = (v: string): number | undefined => (v.trim() === "" ? undefined : Number(v));
+
+/** nuevo-estudiante.png → /estudiantes/nuevo y /estudiantes/:id/editar. */
 export function NuevoEstudiantePage() {
-  const [form, setForm] = useState<FormState>(INICIAL);
-  const [errores, setErrores] = useState<Errores>({});
-  const [falloApi, setFalloApi] = useState(false);
+  const { idEstudiante } = useParams();
+  const modoEdicion = window.location.pathname.includes("/editar");
+  const id = Number(idEstudiante);
   const navigate = useNavigate();
+  const toast = useToast();
   const queryClient = useQueryClient();
 
+  const [form, setForm] = useState<FormState>(INICIAL);
+  const [documentos, setDocumentos] = useState<DocumentoAdjunto[]>([]);
+  const [tocados, setTocados] = useState<Partial<Record<keyof FormState, boolean>>>({});
+  const [enviado, setEnviado] = useState(false);
+  const [confirmandoSalida, setConfirmandoSalida] = useState(false);
+  const [base, setBase] = useState<string>("");
+
+  const original = useQuery({
+    queryKey: ["estudiante", id],
+    queryFn: () => estudiantesApi.getById(id),
+    enabled: modoEdicion && Number.isInteger(id) && id > 0,
+  });
+  const lista = useQuery({ queryKey: ["dashboard"], queryFn: fetchDashboard });
+
+  useEffect(() => {
+    if (modoEdicion && original.data) {
+      const { form: f, documentos: d } = desdeEntidad(original.data);
+      setForm(f);
+      setDocumentos(d);
+      setBase(JSON.stringify({ f, d }));
+    }
+  }, [modoEdicion, original.data]);
+
+  const errores = useMemo(
+    () => validar(form, lista.data?.estudiantes ?? [], modoEdicion ? id : undefined),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [form, lista.data, modoEdicion, id],
+  );
+  const sucio = JSON.stringify({ f: form, d: documentos }) !== (modoEdicion ? base : JSON.stringify({ f: INICIAL, d: [] }));
+  const verError = (k: keyof FormState) => (enviado || tocados[k] ? errores[k] : undefined);
+
   const mutation = useMutation({
-    mutationFn: (payload: Estudiante) => estudiantesApi.create(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-      navigate(ROUTES.estudiantes);
+    mutationFn: async (): Promise<number> => {
+      const payload: EstudianteExtendido = {
+        nombre: form.nombre.trim(),
+        apellido: form.apellido.trim(),
+        ci: form.ci.trim(),
+        fecha_nacimiento: form.fechaNacimiento,
+        genero: form.genero || undefined,
+        telefono: form.telefono.trim() || undefined,
+        correo: form.correo.trim() || undefined,
+        direccion: form.direccion.trim() || undefined,
+        ciudad: form.ciudad.trim() || undefined,
+        carrera: form.carrera.trim(),
+        codigo_universitario: form.codigoUniversitario.trim() || undefined,
+        facultad: form.facultad.trim() || undefined,
+        semestre: numOpcional(form.semestre),
+        promedio: Number(form.promedio),
+        materias_aprobadas: numOpcional(form.materiasAprobadas),
+        materias_reprobadas: numOpcional(form.materiasReprobadas),
+        anio_ingreso: numOpcional(form.anioIngreso),
+        ingreso_familiar: Number(form.ingreso),
+        integrantes_hogar: numOpcional(form.integrantesHogar),
+        dependientes: numOpcional(form.dependientes),
+        tipo_vivienda: form.tipoVivienda || undefined,
+        procedencia: (form.procedencia || undefined) as "urbano" | "rural" | undefined,
+        discapacidad: form.discapacidad || undefined,
+        situacion_laboral: form.situacionLaboral || undefined,
+        motivo: form.motivo.trim() || undefined,
+        documentos,
+      };
+      if (modoEdicion) {
+        await estudiantesApi.update(id, payload);
+        return id;
+      }
+      const creado = await estudiantesApi.create(payload);
+      const nuevoId = creado.id_estudiante ?? 0;
+      if (!nuevoId) throw new Error("Sin id generado");
+      return nuevoId;
     },
-    onError: () => setFalloApi(true),
+    onSuccess: (nuevoId) => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["estudiante", nuevoId] });
+      toast.exito(modoEdicion ? "Estudiante actualizado." : "Estudiante registrado.");
+      navigate(`/estudiantes/${nuevoId}`);
+    },
+    onError: () => toast.error("No se pudo guardar al estudiante."),
   });
 
-  const set = (k: keyof FormState) => (ev: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-    setForm((f) => ({ ...f, [k]: ev.target.value }));
+  const set =
+    (k: keyof FormState) =>
+    (ev: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+      setForm((f) => ({ ...f, [k]: ev.target.value }));
+
+  const tocar = (k: keyof FormState) => () => setTocados((t) => ({ ...t, [k]: true }));
 
   const guardar = (ev: React.FormEvent) => {
     ev.preventDefault();
-    setFalloApi(false);
-    const errs = validar(form);
-    setErrores(errs);
-    if (Object.keys(errs).length > 0) return;
-    mutation.mutate({
-      nombre: form.nombre.trim(),
-      apellido: form.apellido.trim(),
-      carrera: form.carrera.trim(),
-      promedio: Number(form.promedio),
-      ingreso_familiar: Number(form.ingreso),
-    });
+    setEnviado(true);
+    if (Object.keys(errores).length > 0) {
+      requestAnimationFrame(() => {
+        const primero = document.querySelector(".field-error");
+        const campo = primero?.closest(".field");
+        campo?.scrollIntoView({ behavior: "smooth", block: "center" });
+        campo?.querySelector<HTMLElement>("input, select, textarea")?.focus();
+      });
+      return;
+    }
+    mutation.mutate();
   };
+
+  const cancelar = () => {
+    if (sucio) setConfirmandoSalida(true);
+    else navigate(ROUTES.estudiantes);
+  };
+
+  const agregarDocumentos = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    const archivos = ev.target.files;
+    if (!archivos) return;
+    setDocumentos((d) => [...d, ...[...archivos].map((a) => ({ nombre: a.name, tamanio: a.size }))]);
+    ev.target.value = "";
+  };
+
+  if (modoEdicion && (!Number.isInteger(id) || id <= 0)) {
+    return <div className="page error">ID de estudiante inválido.</div>;
+  }
+  if (modoEdicion && original.isPending) {
+    return (
+      <div className="page">
+        <PageHeader title="Editar estudiante" />
+        <Spinner texto="Cargando datos…" />
+      </div>
+    );
+  }
+  if (modoEdicion && !original.data) {
+    return (
+      <div className="page">
+        <PageHeader title="Editar estudiante" />
+        <EmptyState
+          titulo="Estudiante no encontrado"
+          detalle="El estudiante no existe o fue eliminado."
+          accion={<Link to={ROUTES.estudiantes}>Volver al listado</Link>}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page">
-      <PageHeader title="Nuevo estudiante" />
+      <PageHeader title={modoEdicion ? "Editar estudiante" : "Nuevo estudiante"} />
       <form onSubmit={guardar} noValidate>
-        <Card title="Registro">
+        <Card title={modoEdicion ? "Edición" : "Registro"}>
           <FormSection title="Datos personales">
-            <FormField label="Nombres" error={errores.nombre}>
-              <input className="input" value={form.nombre} onChange={set("nombre")} maxLength={100} />
+            <FormField label="Nombres *" error={verError("nombre")}>
+              <input className="input" value={form.nombre} onChange={set("nombre")} onBlur={tocar("nombre")} maxLength={100} />
             </FormField>
-            <FormField label="Apellidos" error={errores.apellido}>
-              <input className="input" value={form.apellido} onChange={set("apellido")} maxLength={100} />
+            <FormField label="Apellidos *" error={verError("apellido")}>
+              <input className="input" value={form.apellido} onChange={set("apellido")} onBlur={tocar("apellido")} maxLength={100} />
             </FormField>
-            <FormField label="Carnet de identidad">
-              <input className="input" value={form.carnet} onChange={set("carnet")} />
+            <FormField label="Carnet de identidad *" error={verError("ci")}>
+              <input className="input" value={form.ci} onChange={set("ci")} onBlur={tocar("ci")} placeholder="1234567 o 1234567-1A" />
             </FormField>
-            <FormField label="Fecha de nacimiento">
-              <input className="input" type="date" value={form.fechaNacimiento} onChange={set("fechaNacimiento")} />
+            <FormField label="Fecha de nacimiento *" error={verError("fechaNacimiento")}>
+              <input className="input" type="date" value={form.fechaNacimiento} onChange={set("fechaNacimiento")} onBlur={tocar("fechaNacimiento")} />
             </FormField>
-            <FormField label="Teléfono / Correo">
-              <input className="input" value={form.contacto} onChange={set("contacto")} />
+            <FormField label="Género">
+              <select className="input" value={form.genero} onChange={set("genero")}>
+                <option value="">Seleccionar…</option>
+                <option value="femenino">Femenino</option>
+                <option value="masculino">Masculino</option>
+                <option value="otro">Otro</option>
+              </select>
             </FormField>
-            <FormField label="Carrera" error={errores.carrera}>
-              <input className="input" value={form.carrera} onChange={set("carrera")} maxLength={100} />
+            <FormField label="Teléfono">
+              <input className="input" value={form.telefono} onChange={set("telefono")} />
+            </FormField>
+            <FormField label="Correo">
+              <input className="input" type="email" value={form.correo} onChange={set("correo")} onBlur={tocar("correo")} />
+            </FormField>
+            <FormField label="Dirección">
+              <input className="input" value={form.direccion} onChange={set("direccion")} />
+            </FormField>
+            <FormField label="Ciudad / Departamento">
+              <input className="input" value={form.ciudad} onChange={set("ciudad")} />
+            </FormField>
+            <FormField label="Carrera *" error={verError("carrera")}>
+              <input className="input" value={form.carrera} onChange={set("carrera")} onBlur={tocar("carrera")} maxLength={100} />
             </FormField>
           </FormSection>
 
           <FormSection title="Datos académicos">
-            <FormField label="Promedio académico" error={errores.promedio}>
-              <input className="input" type="number" min={0} max={100} step="0.01" value={form.promedio} onChange={set("promedio")} />
+            <FormField label="Código universitario">
+              <input className="input" value={form.codigoUniversitario} onChange={set("codigoUniversitario")} />
             </FormField>
-            <FormField label="Porcentaje de asistencia">
-              <input className="input" type="number" min={0} max={100} value={form.asistencia} onChange={set("asistencia")} />
+            <FormField label="Facultad">
+              <input className="input" value={form.facultad} onChange={set("facultad")} />
             </FormField>
-            <FormField label="Semestre / Gestión">
-              <input className="input" value={form.semestre} onChange={set("semestre")} />
+            <FormField label="Semestre" error={verError("semestre")}>
+              <input className="input" type="number" min={1} max={10} value={form.semestre} onChange={set("semestre")} onBlur={tocar("semestre")} />
+            </FormField>
+            <FormField label="Promedio académico *" error={verError("promedio")}>
+              <input className="input" type="number" min={0} max={100} step="0.01" value={form.promedio} onChange={set("promedio")} onBlur={tocar("promedio")} />
+            </FormField>
+            <FormField label="Materias aprobadas" error={verError("materiasAprobadas")}>
+              <input className="input" type="number" min={0} value={form.materiasAprobadas} onChange={set("materiasAprobadas")} onBlur={tocar("materiasAprobadas")} />
+            </FormField>
+            <FormField label="Materias reprobadas" error={verError("materiasReprobadas")}>
+              <input className="input" type="number" min={0} value={form.materiasReprobadas} onChange={set("materiasReprobadas")} onBlur={tocar("materiasReprobadas")} />
+            </FormField>
+            <FormField label="Año de ingreso" error={verError("anioIngreso")}>
+              <input className="input" type="number" value={form.anioIngreso} onChange={set("anioIngreso")} onBlur={tocar("anioIngreso")} />
             </FormField>
           </FormSection>
 
           <FormSection title="Datos socioeconómicos">
-            <FormField label="Ingreso familiar mensual" error={errores.ingreso}>
-              <input className="input" type="number" min={0} step="0.01" value={form.ingreso} onChange={set("ingreso")} />
+            <FormField label="Ingreso familiar mensual *" error={verError("ingreso")}>
+              <input className="input" type="number" min={0} step="0.01" value={form.ingreso} onChange={set("ingreso")} onBlur={tocar("ingreso")} />
             </FormField>
-            <FormField label="Carga familiar">
-              <input className="input" value={form.cargaFamiliar} onChange={set("cargaFamiliar")} />
+            <FormField label="Integrantes del hogar" error={verError("integrantesHogar")}>
+              <input className="input" type="number" min={1} value={form.integrantesHogar} onChange={set("integrantesHogar")} onBlur={tocar("integrantesHogar")} />
             </FormField>
-            <FormField label="Condición vulnerable">
-              <input className="input" value={form.condicionVulnerable} onChange={set("condicionVulnerable")} />
+            <FormField label="Dependientes" error={verError("dependientes")}>
+              <input className="input" type="number" min={0} value={form.dependientes} onChange={set("dependientes")} onBlur={tocar("dependientes")} />
+            </FormField>
+            <FormField label="Tipo de vivienda">
+              <select className="input" value={form.tipoVivienda} onChange={set("tipoVivienda")}>
+                <option value="">Seleccionar…</option>
+                <option value="propia">Propia</option>
+                <option value="alquilada">Alquilada</option>
+                <option value="anticretico">Anticrético</option>
+                <option value="otra">Otra</option>
+              </select>
+            </FormField>
+            <FormField label="Procedencia">
+              <select className="input" value={form.procedencia} onChange={set("procedencia")}>
+                <option value="">Seleccionar…</option>
+                <option value="urbano">Urbano</option>
+                <option value="rural">Rural</option>
+              </select>
+            </FormField>
+            <FormField label="Discapacidad">
+              <select className="input" value={form.discapacidad} onChange={set("discapacidad")}>
+                <option value="">Seleccionar…</option>
+                <option value="no">No</option>
+                <option value="si">Sí</option>
+              </select>
+            </FormField>
+            <FormField label="Situación laboral">
+              <input className="input" value={form.situacionLaboral} onChange={set("situacionLaboral")} />
             </FormField>
           </FormSection>
 
@@ -156,30 +384,53 @@ export function NuevoEstudiantePage() {
                 ))}
               </select>
             </FormField>
+            <FormField label="Motivo / Justificación">
+              <textarea className="input" rows={3} value={form.motivo} onChange={set("motivo")} />
+            </FormField>
             <FormField label="Fecha de solicitud">
               <input className="input" type="date" value={form.fechaSolicitud} onChange={set("fechaSolicitud")} />
             </FormField>
             <FormField label="Documentos adjuntos">
-              <input className="input" value={form.documentos} onChange={set("documentos")} />
+              <input className="input" type="file" multiple onChange={agregarDocumentos} />
+              {documentos.length > 0 && (
+                <ul className="doc-list">
+                  {documentos.map((d, i) => (
+                    <li key={`${d.nombre}-${i}`}>
+                      {d.nombre} ({Math.max(1, Math.round(d.tamanio / 1024))} KB)
+                      <button
+                        className="link-btn danger"
+                        type="button"
+                        onClick={() => setDocumentos((docs) => docs.filter((_, j) => j !== i))}
+                      >
+                        Quitar
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </FormField>
           </FormSection>
 
-          {falloApi && (
-            <p className="error">Sin backend disponible: el estudiante no pudo registrarse (POST /estudiantes falló).</p>
-          )}
-          {USE_MOCKS && (
-            <p className="muted">Modo demostración (VITE_USE_MOCKS=true): el registro se simula y no persiste.</p>
-          )}
           <div className="form-actions">
-            <button className="btn btn-primary" type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Guardando…" : "Guardar"}
-            </button>
-            <button className="btn btn-secondary" type="button" onClick={() => navigate(ROUTES.estudiantes)}>
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending ? "Guardando…" : modoEdicion ? "Guardar cambios" : "Guardar"}
+            </Button>
+            <Button variant="secondary" type="button" onClick={cancelar}>
               Cancelar
-            </button>
+            </Button>
           </div>
         </Card>
       </form>
+
+      {confirmandoSalida && (
+        <ConfirmDialog
+          titulo="Descartar cambios"
+          mensaje="Hay cambios sin guardar que se perderán. ¿Salir de todos modos?"
+          textoConfirmar="Descartar"
+          onConfirmar={() => navigate(ROUTES.estudiantes)}
+          onCancelar={() => setConfirmandoSalida(false)}
+        />
+      )}
     </div>
   );
 }

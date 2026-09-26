@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./routing/router";
 import { queryClient } from "./state/queryClient";
+import { ToastProvider } from "./state/ToastContext";
 import "./styles/global.css";
 
 const root = document.getElementById("root");
@@ -12,7 +13,9 @@ if (!root) throw new Error("Falta <div id=\"root\"> en index.html");
 createRoot(root).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <ToastProvider>
+        <RouterProvider router={router} />
+      </ToastProvider>
     </QueryClientProvider>
   </StrictMode>,
 );
