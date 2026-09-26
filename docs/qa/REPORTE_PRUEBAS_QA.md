@@ -1,5 +1,7 @@
 # Reporte de Pruebas QA — DSS-Becas
 
+> Tablero GitHub Projects: pendiente (falta permiso `project` en el token; ejecutar `gh auth refresh -s project` y pedir la creación del tablero "DSS-Becas – Backlog"). Issues #1–#9 ya creados.
+
 Proyecto: DSS-Becas — Sistema de Soporte a Decisiones para Asignación de Becas | Squad: [COMPLETAR] | Sprint Auditado: Sprint [COMPLETAR] – Release MVP | Fecha de Ejecución: 26/09/2026.
 
 ## 1. Alcance de las Pruebas
@@ -47,11 +49,11 @@ Resultado: 16 ✅ Pasa, 4 ❌ Falla. Salida completa en `docs/qa/evidencias/ejec
 
 | ID Test | Problema (Bug) | Issue GitHub | Prioridad | Asignado a |
 |---------|----------------|--------------|-----------|------------|
-| CP-17 | Sin decisión del evaluador (aprobar/rechazar/observación) | [ver issues.md] | Alta | [COMPLETAR] |
-| CP-15 | Sin reglas de elegibilidad ("No elegible") | [ver issues.md] | Alta | [COMPLETAR] |
-| CP-13 | Backend no valida que los pesos sumen 100 % | [ver issues.md] | Alta | [COMPLETAR] |
-| CP-05 | Convocatoria acepta fin anterior al inicio | [ver issues.md] | Media | [COMPLETAR] |
-| hallazgo-1 | Ranking duplica evaluaciones del mismo estudiante | [ver issues.md] | Alta | [COMPLETAR] |
+| CP-17 | Sin decisión del evaluador (aprobar/rechazar/observación) | #2 | Alta | [COMPLETAR] |
+| CP-15 | Sin reglas de elegibilidad ("No elegible") | #3 | Alta | [COMPLETAR] |
+| CP-13 | Backend no valida que los pesos sumen 100 % | #4 | Alta | [COMPLETAR] |
+| CP-05 | Convocatoria acepta fin anterior al inicio | #5 | Media | [COMPLETAR] |
+| hallazgo-1 | Ranking duplica evaluaciones del mismo estudiante | #1 | Alta | [COMPLETAR] |
 
 ## 4. Anexos (capturas a tomar por el equipo)
 
