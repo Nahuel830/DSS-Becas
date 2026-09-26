@@ -27,21 +27,21 @@ Herramientas Utilizadas: Vitest, Supertest, Prisma Studio, Postman/Thunder Clien
 
 | ID Test | ID Historia | Descripción | Pasos | Esperado | Obtenido | Estado | Evidencia |
 |---------|-------------|-------------|-------|----------|----------|--------|-----------|
-| CP-01 | RF-01 | Obligatorios vacíos | POST `/api/estudiantes` `{}` | 400 + detalles nombre/carrera/promedio/ingreso | 400 con detalles en español | ✅ | Anexo 4 |
-| CP-02 | RF-01 | Letras en numéricos | POST con promedio "abc", ingreso "mil", semestre "tres" | 400 (3/3) | 400 (3/3) | ✅ | Anexo 4 |
-| CP-03 | RF-01 | Negativos y cero | ingreso -500, integrantes 0, cupos -1, monto negativo | 400 (4/4) | 400 (4/4) | ✅ | Anexo 4 |
+| CP-01 | RF-01 | Obligatorios vacíos | POST `/api/estudiantes` `{}` | 400 + detalles nombre/carrera/promedio/ingreso | 400 con detalles en español | ✅ | Anexo 4 (`error_400.json`) |
+| CP-02 | RF-01 | Letras en numéricos | POST con promedio "abc", ingreso "mil", semestre "tres" | 400 (3/3) | 400 (3/3) | ✅ | Anexo 4 y 6 |
+| CP-03 | RF-01 | Negativos y cero | ingreso -500, integrantes 0, cupos -1, monto negativo | 400 (4/4) | 400 (4/4) | ✅ | Anexo 4 y 6 |
 | CP-04 | RF-01 | Límites y edades | promedio 100.01/-1, semestre 0/11, edad 15/61 → 400; edad 20 → 201 | Según lo indicado | Según lo indicado | ✅ | Anexo 4 |
-| CP-06 | RF-01 | CI/correo duplicados | Crear, reintentar igual CI y luego igual correo | 409 "Ya existe…CI/correo" | 409 en español (2/2) | ✅ | Anexo 1, 4 |
-| CP-07 | RF-01 | Largos y ñ/acentos | nombre 500 → 400; motivo 5000 → 201; "Ñandú Pérez O'Connor" → 201 intacto | Según lo indicado | Según lo indicado | ✅ | Anexo 2 |
+| CP-06 | RF-01 | CI/correo duplicados | Crear, reintentar igual CI y luego igual correo | 409 "Ya existe…CI/correo" | 409 en español (2/2) | ✅ | Anexo 1 (`captura1_error_ci.png`, `error_409.json`) |
+| CP-07 | RF-01 | Largos y ñ/acentos | nombre 500 → 400; motivo 5000 → 201; "Ñandú Pérez O'Connor" → 201 intacto | Según lo indicado | Según lo indicado | ✅ | Anexo 2 (`captura2_prisma_studio.png`) |
 | CP-08 | RF-07 | Eliminar tipo/convocatoria con asignaciones | Generar asignación, DELETE tipo y convocatoria | 409 (2/2) | 409 (2/2) | ✅ | Anexo 4 |
-| CP-09 | RF-01 | Id inexistente | GET/PUT/DELETE `/api/estudiantes/999999` | 404 (3/3) | 404 (3/3) | ✅ | Anexo 4 |
-| CP-10 | RF-01 | Decimales y ñ exactos | POST promedio 78.55, ingreso 3500.75; GET | Valores exactos | Exactos, sin truncar | ✅ | Anexo 2 |
-| CP-11 | RF-02 | Edición persiste | PUT promedio 91.25; GET | 91.25 | 91.25 | ✅ | Anexo 2 |
-| CP-12 | RF-01 | Baja sin huérfanos | Crear + evaluar + DELETE; contar en base | 204 y ceros | 204 y ceros | ✅ | Anexo 2 |
+| CP-09 | RF-01 | Id inexistente | GET/PUT/DELETE `/api/estudiantes/999999` | 404 (3/3) | 404 (3/3) | ✅ | Anexo 4 (`error_404.json`) |
+| CP-10 | RF-01 | Decimales y ñ exactos | POST promedio 78.55, ingreso 3500.75; GET | Valores exactos | Exactos, sin truncar | ✅ | Anexo 2 (`captura2_prisma_studio.png`) |
+| CP-11 | RF-02 | Edición persiste | PUT promedio 91.25; GET | 91.25 | 91.25 | ✅ | Anexo 2 (`captura2_prisma_studio.png`) |
+| CP-12 | RF-01 | Baja sin huérfanos | Crear + evaluar + DELETE; contar en base | 204 y ceros | 204 y ceros | ✅ | Anexo 2 (`captura2_prisma_studio.png`) |
 | CP-14 | RF-03/04/05 | Cálculo a mano vs motor | criterios 90/80/70/60/50 → 73.0 "En revisión"; todo 100 → 100 | Coincide | Coincide (73.0/100) | ✅ | Anexo 4 |
-| CP-16 | RF-07 | Cupos y presupuesto | Tipo cupos=1 + 2 candidatos; generar; resumen | generadas≤1, usado≤total | 1, dentro de límites | ✅ | Anexo 3 |
-| CP-19 | RF-08 | Totales vs base | GET resumen vs `count()` Prisma | Iguales | Iguales | ✅ | Anexo 3 |
-| CP-20 | RNF-02 | POST válido | POST estudiante válido | 201 + id | 201 + id | ✅ | Anexo 4 |
+| CP-16 | RF-07 | Cupos y presupuesto | Tipo cupos=1 + 2 candidatos; generar; resumen | generadas≤1, usado≤total | 1, dentro de límites | ✅ | Anexo 3 (`captura3_dashboard.png`) |
+| CP-19 | RF-08 | Totales vs base | GET resumen vs `count()` Prisma | Iguales | Iguales | ✅ | Anexo 3 (`captura3_dashboard.png`, `dashboard_resumen.json`) |
+| CP-20 | RNF-02 | POST válido | POST estudiante válido | 201 + id | 201 + id | ✅ | Anexo 4 (`ok_201.json`) |
 
 Resultado: 16 ✅ Pasa, 4 ❌ Falla. Salida completa en `docs/qa/evidencias/ejecucion_pruebas.txt`.
 
@@ -55,10 +55,38 @@ Resultado: 16 ✅ Pasa, 4 ❌ Falla. Salida completa en `docs/qa/evidencias/ejec
 | CP-05 | Convocatoria acepta fin anterior al inicio | #5 | Media | [COMPLETAR] |
 | hallazgo-1 | Ranking duplica evaluaciones del mismo estudiante | #1 | Alta | [COMPLETAR] |
 
-## 4. Anexos (capturas a tomar por el equipo)
+## 4. Anexos (evidencias)
 
-- Captura 1 (error CRUD): abrir `/estudiantes/nuevo`, ingresar CI `1000001` existente y Guardar; debe verse "Este CI ya está registrado" debajo del campo CI.
-- Captura 2 (dato en base): abrir Prisma Studio (`npm run db:studio` en `backend`), tabla Estudiante, fila con "Ñandú Pérez O'Connor", promedio 78.55 intactos.
-- Captura 3 (dashboard): abrir `/dashboard` con datos semilla: 4 KPI, ranking top 5, alertas y barras por estado.
-- Captura 4 (respuesta API): Thunder Client POST `/api/estudiantes` `{}` → 400 con `detalles`; y POST válido → 201 con `id_estudiante`.
-- Captura 5 (tablero): GitHub Projects "DSS-Becas – Backlog" con los 9 issues en Backlog.
+### Anexo 1 — Error por CI duplicado (CP-06)
+
+![Error por CI duplicado](evidencias/captura1_error_ci.png)
+
+Formulario `/estudiantes/nuevo` con CI `1000001` existente: se observa el mensaje "Este CI ya está registrado" en rojo debajo del campo. Caso CP-06. Existe una toma duplicada (`captura1_error_ci_duplicado.png`) con el mismo contenido.
+
+### Anexo 2 — Dato persistido en Prisma Studio (CP-07, CP-10, CP-11, CP-12)
+
+![Prisma Studio](evidencias/captura2_prisma_studio.png)
+
+Tablas Estudiante y Resultado en Prisma Studio: se observan 27+ filas con CI, correos y resultados ("En revisión"), sin truncamientos. Casos CP-07/CP-10/CP-11/CP-12.
+
+### Anexo 3 — Dashboard (CP-18, CP-19, CP-16)
+
+![Dashboard](evidencias/captura3_dashboard.png)
+
+`/dashboard` con datos semilla: KPI 27/14/9/4, ranking top 5 con badges, 4 alertas y barras por estado. Casos CP-16/CP-18/CP-19 (existe duplicada `captura3_dashboard_duplicado.png`). JSON equivalente en `evidencias/dashboard_resumen.json`.
+
+### Anexo 4 — Respuestas API (CP-01, CP-09, CP-20 y fallos CP-05/CP-13/CP-15/CP-17)
+
+Sin capturas Thunder Client (pendientes de tomar: POST `{}` → 400 con `detalles` y POST válido → 201). Equivalentes JSON ya capturados: `error_400.json`, `error_404.json`, `error_409.json`, `ok_201.json`.
+
+### Anexo 5 — Tablero GitHub Projects (trazabilidad)
+
+![Tablero](evidencias/captura5_github_projects.png)
+
+Tablero "DSS-Becas – Backlog" con los 9 issues (#1–#9). Vista secundaria de configuración de columnas en `captura5_github_projects_vista.png`.
+
+### Anexo 6 — Gestión de estudiantes (CP-02, CP-03)
+
+![Gestión](evidencias/captura8_gestion_estudiantes.png)
+
+`/estudiantes?porPagina=10&pagina=1` con 28 filas: se observan columnas Código/Nombre/Carrera/Estado beca/Puntaje DSS/Acción, buscador, filtros y paginación "Mostrando 1–10 de 28". Complementa CP-02/CP-03.
