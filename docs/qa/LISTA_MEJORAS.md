@@ -1,6 +1,6 @@
 # Lista de mejoras — DSS-Becas
 
-> Tablero GitHub Projects: pendiente (ver nota en REPORTE_PRUEBAS_QA.md). Issues #1–#9 ya creados.
+> Tablero GitHub Projects: https://github.com/users/Nahuel830/projects/4 ("DSS-Becas – Backlog", columna Backlog). Issues #1–#9 ya creados.
 
 | ID | Issue | Tipo | Origen | Descripción | Criterio de aceptación | Prioridad | Est. | Sprint |
 |----|-------|------|--------|-------------|------------------------|-----------|------|--------|

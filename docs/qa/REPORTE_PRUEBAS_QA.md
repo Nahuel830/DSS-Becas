@@ -1,6 +1,6 @@
 # Reporte de Pruebas QA — DSS-Becas
 
-> Tablero GitHub Projects: pendiente (falta permiso `project` en el token; ejecutar `gh auth refresh -s project` y pedir la creación del tablero "DSS-Becas – Backlog"). Issues #1–#9 ya creados.
+> Tablero GitHub Projects: https://github.com/users/Nahuel830/projects/4 ("DSS-Becas – Backlog", columna Backlog). Issues #1–#9 ya creados.
 
 Proyecto: DSS-Becas — Sistema de Soporte a Decisiones para Asignación de Becas | Squad: [COMPLETAR] | Sprint Auditado: Sprint [COMPLETAR] – Release MVP | Fecha de Ejecución: 26/09/2026.
 
