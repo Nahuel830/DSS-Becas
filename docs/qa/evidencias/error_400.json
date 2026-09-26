@@ -1,0 +1,1 @@
+{"error":"Datos inválidos","detalles":{"nombre":"Requerido.","apellido":"Required","promedio":"Debe estar entre 0 y 100.","ingreso_familiar":"Debe ser mayor o igual a 0."}}

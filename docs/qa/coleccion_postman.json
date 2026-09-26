@@ -1,0 +1,82 @@
+{
+  "info": {
+    "name": "DSS-Becas QA",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Estudiantes",
+      "item": [
+        {
+          "name": "Crear válido → 201",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:3001/api/estudiantes",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombre\":\"Evidencia\",\"apellido\":\"QA\",\"ci\":\"9111111\",\"carrera\":\"Derecho\",\"promedio\":85,\"ingreso_familiar\":3000}"
+            }
+          }
+        },
+        {
+          "name": "Crear vacío → 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:3001/api/estudiantes",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombre\":\"\",\"carrera\":\"X\",\"promedio\":150,\"ingreso_familiar\":-5}"
+            }
+          }
+        },
+        {
+          "name": "CI duplicado → 409",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:3001/api/estudiantes",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombre\":\"Dup\",\"apellido\":\"E\",\"ci\":\"1000001\",\"carrera\":\"Derecho\",\"promedio\":80,\"ingreso_familiar\":1000}"
+            }
+          }
+        },
+        {
+          "name": "Inexistente → 404",
+          "request": { "method": "GET", "url": "http://localhost:3001/api/estudiantes/999999" }
+        },
+        {
+          "name": "Listar con filtros",
+          "request": { "method": "GET", "url": "http://localhost:3001/api/estudiantes?q=maria&orden=puntaje&dir=desc&page=1&pageSize=10" }
+        }
+      ]
+    },
+    {
+      "name": "Evaluaciones y DSS",
+      "item": [
+        {
+          "name": "Calcular (motor)",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:3001/api/evaluaciones/calcular",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id_estudiante\":1,\"criterios\":{\"rendimiento\":90,\"asistencia\":80,\"situacion\":70,\"carga\":60,\"vulnerable\":50}}"
+            }
+          }
+        },
+        {
+          "name": "Dashboard resumen",
+          "request": { "method": "GET", "url": "http://localhost:3001/api/dashboard/resumen" }
+        },
+        {
+          "name": "Ranking",
+          "request": { "method": "GET", "url": "http://localhost:3001/api/ranking" }
+        }
+      ]
+    }
+  ]
+}
