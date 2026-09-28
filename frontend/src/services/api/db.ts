@@ -5,10 +5,10 @@
  * Fechas de creación/actualización se registran como eventos (ver eventosDe).
  */
 import type { EstudianteExtendido } from "../../models/domain";
-import { MOCK_BECAS, MOCK_ESTUDIANTES, MOCK_EVALUACIONES, MOCK_RESULTADOS } from "./mocks";
-import type { Beca, Evaluacion, Resultado } from "./types";
+import { MOCK_BECAS, MOCK_ESTUDIANTES, MOCK_EVALUACIONES, MOCK_RESULTADOS, MOCK_SEGUIMIENTOS } from "./mocks";
+import type { Beca, Evaluacion, Resultado, SeguimientoRow } from "./types";
 
-export type Coleccion = "estudiantes" | "evaluaciones" | "resultados" | "becas";
+export type Coleccion = "estudiantes" | "evaluaciones" | "resultados" | "becas" | "seguimientos";
 
 export interface EventoDb {
   id_evento: number;
@@ -23,6 +23,7 @@ export interface BaseDeDatos {
   evaluaciones: Evaluacion[];
   resultados: Resultado[];
   becas: Beca[];
+  seguimientos: SeguimientoRow[];
   eventos: EventoDb[];
 }
 
@@ -33,9 +34,10 @@ const ID_DE: Record<Coleccion, string> = {
   evaluaciones: "id_evaluacion",
   resultados: "id_resultado",
   becas: "id_beca",
+  seguimientos: "id",
 };
 
-type Ids = "id_estudiante" | "id_evaluacion" | "id_resultado" | "id_beca" | "id_evento";
+type Ids = "id" | "id_estudiante" | "id_evaluacion" | "id_resultado" | "id_beca" | "id_evento";
 type SinId<T extends object> = Omit<T, Extract<Ids, keyof T>> & Partial<Pick<T, Extract<Ids, keyof T>>>;
 
 function sembrar(): BaseDeDatos {
@@ -44,6 +46,7 @@ function sembrar(): BaseDeDatos {
     evaluaciones: MOCK_EVALUACIONES.map((e) => ({ ...e })),
     resultados: MOCK_RESULTADOS.map((r) => ({ ...r })),
     becas: MOCK_BECAS.map((b) => ({ ...b })),
+    seguimientos: MOCK_SEGUIMIENTOS.map((s) => ({ ...s })),
     eventos: [
       {
         id_evento: 1,
@@ -64,7 +67,13 @@ function leer(): BaseDeDatos {
       guardar(db);
       return db;
     }
-    return JSON.parse(crudo) as BaseDeDatos;
+    const db = JSON.parse(crudo) as BaseDeDatos;
+    // Migración suave: bases sembradas antes del módulo Seguimiento.
+    if (!Array.isArray(db.seguimientos)) {
+      db.seguimientos = MOCK_SEGUIMIENTOS.map((s) => ({ ...s }));
+      guardar(db);
+    }
+    return db;
   } catch {
     const db = sembrar();
     guardar(db);

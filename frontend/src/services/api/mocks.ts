@@ -5,7 +5,7 @@
  * (universidad boliviana) con evaluaciones, resultados y becas.
  */
 import { clasificarPuntaje } from "../../utils/dss";
-import type { Beca, Estudiante, Evaluacion, Resultado } from "./types";
+import type { Beca, Estudiante, Evaluacion, Resultado, SeguimientoRow } from "./types";
 
 function redondear1(n: number): number {
   return Math.round(n * 10) / 10;
@@ -150,4 +150,26 @@ export const MOCK_ALERTAS: string[] = [
   "Nuevas solicitudes: 8",
   "Promedio en descenso: Raúl Ticona",
   "Renovación próxima: Beca Social de Paola Vargas",
+];
+
+/** Seguimiento mock (periodos de María Fernández, becaria Excelencia). */
+export const MOCK_SEGUIMIENTOS: SeguimientoRow[] = [
+  {
+    id: 1, id_asignacion: 1, fecha: "2025-02-10", periodo: "2024-II", promedio_periodo: 86.0,
+    estado: "Al día",
+    asignacion: {
+      estudiante: { nombre: "María", apellido: "Fernández", carrera: "Ing. Sistemas" },
+      convocatoria: { nombre: "Convocatoria Becas 2025-I" },
+      tipoBeca: { nombre: "Excelencia" },
+    },
+  },
+  {
+    id: 2, id_asignacion: 1, fecha: "2025-08-10", periodo: "2025-I", promedio_periodo: 88.0,
+    estado: "Al día",
+    asignacion: {
+      estudiante: { nombre: "María", apellido: "Fernández", carrera: "Ing. Sistemas" },
+      convocatoria: { nombre: "Convocatoria Becas 2025-I" },
+      tipoBeca: { nombre: "Excelencia" },
+    },
+  },
 ];

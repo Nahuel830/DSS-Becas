@@ -64,3 +64,19 @@ export interface EventoHistorial {
   tipo: string;
   detalle: string;
 }
+
+/** Seguimiento académico por periodo (GET /api/seguimiento). */
+export interface SeguimientoRow {
+  id: number;
+  id_asignacion: number;
+  fecha: string;
+  periodo: string;
+  promedio_periodo: number;
+  estado: string;
+  observaciones?: string | null;
+  asignacion?: {
+    estudiante?: { nombre?: string; apellido?: string; carrera?: string };
+    convocatoria?: { nombre?: string };
+    tipoBeca?: { nombre?: string };
+  };
+}

@@ -8,8 +8,8 @@ export const ROUTES = {
   nuevaEvaluacion: "/evaluaciones/nueva",
   evaluacionPorId: (id: number | string = ":idEstudiante") => `/evaluacion/${id}`,
   becas: "/becas",
-  configuracion: "/configuracion",
   seguimiento: "/seguimiento",
+  configuracion: "/configuracion",
   reportes: "/reportes",
   administracion: "/administracion",
 } as const;

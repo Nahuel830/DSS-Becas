@@ -7,7 +7,7 @@ const ITEMS = [
   { to: ROUTES.estudiantes, texto: "Estudiantes", Icono: Users, pendiente: false },
   { to: ROUTES.nuevaEvaluacion, texto: "Evaluación DSS", Icono: ClipboardCheck, pendiente: false },
   { to: ROUTES.becas, texto: "Becas", Icono: Award, pendiente: false },
-  { to: ROUTES.seguimiento, texto: "Seguimiento*", Icono: LineChart, pendiente: true },
+  { to: ROUTES.seguimiento, texto: "Seguimiento", Icono: LineChart, pendiente: false },
   { to: ROUTES.reportes, texto: "Reportes*", Icono: FileText, pendiente: true },
   { to: ROUTES.administracion, texto: "Administración*", Icono: Settings, pendiente: true },
   { to: ROUTES.configuracion, texto: "Configuración", Icono: SlidersHorizontal, pendiente: false },

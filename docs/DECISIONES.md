@@ -40,3 +40,7 @@ Registro de decisiones tomadas por falta de información o por conflicto entre f
 - **D36 Catálogos solo lectura en mock.** Crear/editar/eliminar catálogos requiere backend real.
 - **D37 Puerto frontend 5173** (antes 8080) para el arranque conjunto.
 - **D38 Bug `formatPuntaje`.** 74.0 se mostraba como "74.": corregido a siempre un decimal mínimo (detectado por test).
+- **D39 PUT `/api/criterios/pesos` en lote.** Los modales editan de a un criterio; el guardado masivo con suma 100 vive en este endpoint y en el botón "Guardar pesos en lote".
+- **D40 Elegibilidad configurable.** `PROMEDIO_MINIMO=51` y `TOPE_INGRESO_SOCIAL=4000` como constantes exportadas en `backend/src/dss/elegibilidad.ts`.
+- **D41 Ranking sin duplicados en espejo.** `mejorPorEstudiante()` en backend; `DashboardPage` agrupa igual en cliente hasta que el resumen del servidor sea la única fuente.
+- **D42 Seguimiento mock espejo.** La regla promedio→estado se duplica en `seguimiento.ts` del frontend con el mismo mínimo; los eventos mock no se registran.

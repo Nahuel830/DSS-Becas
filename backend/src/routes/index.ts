@@ -6,6 +6,7 @@ import * as dev from "../controllers/dev";
 import * as documentos from "../controllers/documentos";
 import * as estudiantes from "../controllers/estudiantes";
 import * as evaluaciones from "../controllers/evaluaciones";
+import * as seguimiento from "../controllers/seguimiento";
 import { ah } from "../middlewares/async";
 import { validate } from "../middlewares/validate";
 import {
@@ -20,6 +21,7 @@ import {
   evaluacionSchema,
   generarSchema,
   pesosSchema,
+  seguimientoSchema,
   tipoBecaSchema,
 } from "../validators/schemas";
 import { upload } from "../controllers/documentos";
@@ -98,6 +100,12 @@ router.post("/asignaciones", validate(asignacionSchema), ah(async (req, res) => 
 }));
 router.put("/asignaciones/:id", ah(asignaciones.actualizar));
 router.delete("/asignaciones/:id", ah(asignaciones.revocar));
+
+// Seguimiento académico
+router.get("/seguimiento", ah(seguimiento.listar));
+router.get("/seguimiento/asignacion/:id", ah(seguimiento.porAsignacion));
+router.post("/seguimiento", validate(seguimientoSchema), ah(seguimiento.crear));
+router.put("/seguimiento/:id", validate(seguimientoSchema.partial()), ah(seguimiento.actualizar));
 
 // Documentos
 router.post("/estudiantes/:id/documentos", upload.single("archivo"), ah(documentos.subir));

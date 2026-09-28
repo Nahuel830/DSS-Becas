@@ -277,6 +277,38 @@ describe("E) API", () => {
   });
 });
 
+describe("QA cierre módulo 2 (issue #6)", () => {
+  it("seguimiento: CRUD con regla automática de estado", async () => {
+    const tipo = await request(app).post("/api/tipos-beca").send({ nombre: "QASeg", monto: 100, cupos: 5 });
+    const conv = await request(app).post("/api/convocatorias").send({ nombre: "ConvQASeg", gestion: "2025-QA" });
+    const est = await request(app).post("/api/estudiantes").send({
+      nombre: "Se", apellido: "Gu", ci: "9100011", carrera: "X", promedio: 80, ingreso_familiar: 2000,
+    });
+    const asig = await request(app).post("/api/asignaciones").send({
+      id_estudiante: est.body.id_estudiante, id_convocatoria: conv.body.id,
+      id_tipo_beca: tipo.body.id, puntaje: 80,
+    });
+    const bajo = await request(app).post("/api/seguimiento").send({
+      id_asignacion: asig.body.id, fecha: "2025-09-01", periodo: "2025-I", promedio_periodo: 40,
+    });
+    expect(bajo.status).toBe(201);
+    expect(bajo.body.estado).toBe("En riesgo");
+    const alto = await request(app).post("/api/seguimiento").send({
+      id_asignacion: asig.body.id, fecha: "2025-09-02", periodo: "2025-II", promedio_periodo: 85,
+    });
+    expect(alto.body.estado).toBe("Al día");
+    const hist = await request(app).get(`/api/seguimiento/asignacion/${asig.body.id}`);
+    expect(hist.body.historial.length).toBe(2);
+    expect(hist.body.sugerencia_suspension).toBe(false);
+    const lista = await request(app).get("/api/seguimiento?estado=En riesgo");
+    expect(lista.body.some((s: { periodo: string }) => s.periodo === "2025-I")).toBe(true);
+    const malo = await request(app).post("/api/seguimiento").send({
+      id_asignacion: asig.body.id, periodo: "2025-III", promedio_periodo: 150,
+    });
+    expect(malo.status).toBe(400);
+  });
+});
+
 describe("QA cierre módulo 1 (issues #1–#5)", () => {
   it("#1: el resumen muestra una fila por estudiante (mejor puntaje)", async () => {
     const est = await request(app).post("/api/estudiantes").send({

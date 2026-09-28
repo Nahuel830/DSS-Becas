@@ -115,8 +115,7 @@ export const convocatoriaParcialSchema = convocatoriaBase.partial().superRefine(
   refinarFechas(v, { addIssue: (p) => ctx.addIssue({ ...p, code: z.ZodIssueCode.custom }) });
 });
 
-export const pesosSchema = z.object({
-  pesos: z
+export const pesosSchema = z.object({  pesos: z
     .array(z.object({ id: z.number().int().positive(), peso: z.number().min(0).max(100) }))
     .min(1, "Se requiere al menos un criterio."),
 }).superRefine((v, ctx) => {
@@ -147,4 +146,12 @@ export const asignacionSchema = z.object({
 export const generarSchema = z.object({
   convocatoriaId: z.number().int().positive(),
   tipoBecaId: z.number().int().positive(),
+});
+
+export const seguimientoSchema = z.object({
+  id_asignacion: z.number().int().positive(),
+  fecha: z.string().min(1, "Requerida."),
+  periodo: z.string().min(1, "Requerido."),
+  promedio_periodo: z.number().min(0, "Debe estar entre 0 y 100.").max(100, "Debe estar entre 0 y 100."),
+  observaciones: z.string().optional(),
 });

@@ -154,8 +154,23 @@ model Asignacion {
   estado           String       @default("Aprobada")
   observaciones    String?
   createdAt        DateTime     @default(now())
+  seguimientos     Seguimiento[]
 
   @@unique([id_estudiante, id_convocatoria, id_tipo_beca])
+}
+
+model Seguimiento {
+  id               Int        @id @default(autoincrement())
+  id_asignacion    Int
+  asignacion       Asignacion @relation(fields: [id_asignacion], references: [id], onDelete: Cascade)
+  fecha            String
+  periodo          String
+  promedio_periodo Float
+  estado           String     @default("Al día")
+  observaciones    String?
+  createdAt        DateTime   @default(now())
+
+  @@index([id_asignacion])
 }
 
 // Documentada en el ER, sin autenticación implementada (ver D28).
