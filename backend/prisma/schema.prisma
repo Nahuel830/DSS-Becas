@@ -179,5 +179,6 @@ model Usuario {
   nombre     String
   correo     String   @unique
   rol        String
+  activo     Boolean  @default(true)
   createdAt  DateTime @default(now())
 }

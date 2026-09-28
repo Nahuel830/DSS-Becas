@@ -46,3 +46,4 @@ Registro de decisiones tomadas por falta de información o por conflicto entre f
 - **D42 Seguimiento mock espejo.** La regla promedio→estado se duplica en `seguimiento.ts` del frontend con el mismo mínimo; los eventos mock no se registran.
 - **D43 Reportes server-side.** CSV con BOM y ";" + attachment; impresión con `@media print` sin sidebar.
 - **D44 Resumen por convocatoria parcial.** Sin vínculo estudiante-convocatoria en docs: postulantes/evaluados siempre globales; asignaciones y presupuesto sí filtran.
+- **D45 Usuarios mock en db local** (colección `usuarios` con migración suave); login/JWT queda para la siguiente fase.

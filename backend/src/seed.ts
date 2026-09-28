@@ -171,6 +171,13 @@ export async function seedDatabase(): Promise<void> {
       data: { id_estudiante: null, tipo: "creacion", detalle: "Base de datos inicializada (seed)" },
     });
   }
+  for (const [nombre, correo, rol] of [
+    ["Admin Bienestar", "admin@universidad.bo", "Administrador"],
+    ["Evaluador DSS", "evaluador@universidad.bo", "Evaluador"],
+    ["Consulta Rectorado", "consulta@universidad.bo", "Consulta"],
+  ] as Array<[string, string, string]>) {
+    await prisma.usuario.upsert({ where: { correo }, update: {}, create: { nombre, correo, rol } });
+  }
 }
 
 async function main(): Promise<void> {

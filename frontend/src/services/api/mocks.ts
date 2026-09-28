@@ -5,7 +5,7 @@
  * (universidad boliviana) con evaluaciones, resultados y becas.
  */
 import { clasificarPuntaje } from "../../utils/dss";
-import type { Beca, Estudiante, Evaluacion, Resultado, SeguimientoRow } from "./types";
+import type { Beca, Estudiante, Evaluacion, Resultado, SeguimientoRow, UsuarioRow } from "./types";
 
 function redondear1(n: number): number {
   return Math.round(n * 10) / 10;
@@ -150,6 +150,13 @@ export const MOCK_ALERTAS: string[] = [
   "Nuevas solicitudes: 8",
   "Promedio en descenso: Raúl Ticona",
   "Renovación próxima: Beca Social de Paola Vargas",
+];
+
+/** Usuarios semilla (sin login/JWT: siguiente fase, D28). */
+export const MOCK_USUARIOS: UsuarioRow[] = [
+  { id_usuario: 1, nombre: "Admin Bienestar", correo: "admin@universidad.bo", rol: "Administrador", activo: true },
+  { id_usuario: 2, nombre: "Evaluador DSS", correo: "evaluador@universidad.bo", rol: "Evaluador", activo: true },
+  { id_usuario: 3, nombre: "Consulta Rectorado", correo: "consulta@universidad.bo", rol: "Consulta", activo: true },
 ];
 
 /** Seguimiento mock (periodos de María Fernández, becaria Excelencia). */

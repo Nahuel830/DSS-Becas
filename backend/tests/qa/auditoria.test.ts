@@ -277,6 +277,28 @@ describe("E) API", () => {
   });
 });
 
+describe("QA cierre módulo 4 (issue #8)", () => {
+  it("usuarios: CRUD, duplicado 409 y activar/desactivar", async () => {
+    const lista = await request(app).get("/api/usuarios");
+    expect(lista.body.length).toBeGreaterThanOrEqual(3);
+    const dup = await request(app).post("/api/usuarios").send({
+      nombre: "Dup", correo: "admin@universidad.bo", rol: "Consulta",
+    });
+    expect(dup.status).toBe(409);
+    const creado = await request(app).post("/api/usuarios").send({
+      nombre: "Qa User", correo: "qa-user@qa.bo", rol: "Evaluador",
+    });
+    expect(creado.status).toBe(201);
+    const id = creado.body.id_usuario as number;
+    const des = await request(app).put(`/api/usuarios/${id}/estado`).send({ activo: false });
+    expect(des.body.activo).toBe(false);
+    const q = await request(app).get("/api/usuarios?q=qa-user");
+    expect(q.body.length).toBe(1);
+    await request(app).delete(`/api/usuarios/${id}`).expect(204);
+    expect((await request(app).get(`/api/usuarios/${id}`)).status).toBe(404);
+  });
+});
+
 describe("QA cierre módulo 3 (issue #7)", () => {
   it("reportes: resumen y CSV", async () => {
     const r = await request(app).get("/api/reportes/resumen");

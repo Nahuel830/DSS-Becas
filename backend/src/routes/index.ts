@@ -8,6 +8,7 @@ import * as estudiantes from "../controllers/estudiantes";
 import * as evaluaciones from "../controllers/evaluaciones";
 import * as reportes from "../controllers/reportes";
 import * as seguimiento from "../controllers/seguimiento";
+import * as usuarios from "../controllers/usuarios";
 import { ah } from "../middlewares/async";
 import { validate } from "../middlewares/validate";
 import {
@@ -25,6 +26,7 @@ import {
   seguimientoSchema,
   tipoBecaSchema,
 } from "../validators/schemas";
+import { usuarioSchema } from "../controllers/usuarios";
 import { upload } from "../controllers/documentos";
 
 export const router = Router();
@@ -118,6 +120,14 @@ router.post("/estudiantes/:id/documentos", upload.single("archivo"), ah(document
 router.get("/estudiantes/:id/documentos", ah(documentos.listar));
 router.get("/documentos/:id/descarga", ah(documentos.descargar));
 router.delete("/documentos/:id", ah(documentos.eliminar));
+
+// Usuarios (sin login/JWT: queda para la siguiente fase, D28)
+router.get("/usuarios", ah(usuarios.listar));
+router.get("/usuarios/:id", ah(usuarios.obtener));
+router.post("/usuarios", validate(usuarioSchema), ah(usuarios.crear));
+router.put("/usuarios/:id", validate(usuarioSchema.partial()), ah(usuarios.actualizar));
+router.put("/usuarios/:id/estado", ah(usuarios.cambiarEstado));
+router.delete("/usuarios/:id", ah(usuarios.eliminar));
 
 // Desarrollo
 router.post("/dev/reset", ah(dev.reset));

@@ -65,6 +65,15 @@ export interface EventoHistorial {
   detalle: string;
 }
 
+/** Usuario administrativo (sin login/JWT: siguiente fase, D28). */
+export interface UsuarioRow {
+  id_usuario: number;
+  nombre: string;
+  correo: string;
+  rol: string;
+  activo?: boolean;
+}
+
 /** Seguimiento académico por periodo (GET /api/seguimiento). */
 export interface SeguimientoRow {
   id: number;
