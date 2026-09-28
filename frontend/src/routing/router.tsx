@@ -11,7 +11,6 @@ import { EvaluacionPage } from "../pages/EvaluacionPage";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import { NuevoEstudiantePage } from "../pages/NuevoEstudiantePage";
 import { ReportesPage } from "../pages/ReportesPage";
-import { PlaceholderPage } from "../pages/PlaceholderPage";
 import { ROUTES } from "./routes";
 
 export const router = createBrowserRouter([

@@ -47,3 +47,6 @@ Registro de decisiones tomadas por falta de información o por conflicto entre f
 - **D43 Reportes server-side.** CSV con BOM y ";" + attachment; impresión con `@media print` sin sidebar.
 - **D44 Resumen por convocatoria parcial.** Sin vínculo estudiante-convocatoria en docs: postulantes/evaluados siempre globales; asignaciones y presupuesto sí filtran.
 - **D45 Usuarios mock en db local** (colección `usuarios` con migración suave); login/JWT queda para la siguiente fase.
+- **D46 OpenAPI v1.1.0.** Cubre todos los endpoints de `routes/index.ts` (servidor `http://localhost:3001/api`).
+- **D47 Sin placeholders.** `PlaceholderPage.tsx` eliminado; toda ruta tiene página real.
+- **D48 Contraste final.** `--gold:#8a6d00` (4.92:1), `--muted`/`--gray-badge:#5a6975` (5.22:1), manteniendo el tono del diseño.

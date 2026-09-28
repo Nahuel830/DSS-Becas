@@ -27,3 +27,11 @@
 
 - Los cálculos de los puntajes deben ser validados contra casos de prueba estandarizados.
 - Todo endpoint de la API debe estar documentado (OpenAPI) y funcional.
+
+## Historias de Usuario (módulos Seguimiento, Reportes y Administración)
+
+- **HU-SEG-01**: Como personal de Bienestar quiero registrar el promedio por periodo de cada becario para detectar riesgo académico.
+- **HU-SEG-02**: Como personal de Bienestar quiero ver el historial por becario con sugerencia de suspensión ante dos periodos en riesgo.
+- **HU-REP-01**: Como estratégico quiero un resumen por convocatoria (postulantes, aprobados, montos, distribución) con gráficos.
+- **HU-REP-02**: Como estratégico quiero descargar el ranking y las asignaciones en CSV e imprimir el reporte.
+- **HU-ADM-01**: Como administrador quiero gestionar usuarios (crear, editar, activar/desactivar, eliminar) con roles Administrador|Evaluador|Consulta.

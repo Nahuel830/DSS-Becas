@@ -13,3 +13,7 @@
 | MEJ-07 | #7 | ux-improvement | hallazgo-2 | Módulo Reportes (RF-08 parcial; placeholder actual) | Pantalla o descarte documentado | Media | 5 | [COMPLETAR] |
 | MEJ-08 | #8 | ux-improvement | hallazgo-2 | Módulo Administración/usuarios (documentado, sin implementar) | Historia de usuario + pantalla o descarte documentado | Media | 5 | [COMPLETAR] |
 | MEJ-09 | #9 | ux-improvement | Checklist ítem 10 | Contraste: dorado 3.15:1 y muted 4.08:1 bajo 4.5:1 | Ambos ≥4.5:1 verificados con la misma fórmula | Baja | 1 | [COMPLETAR] |
+
+## Estado (cierre)
+
+MEJ-01 a MEJ-09 resueltos en la rama `feature/cierre-modulos`: ranking sin duplicados, decisión con observaciones, elegibilidad configurable, suma de pesos en backend, rango de fechas, Seguimiento, Reportes, Administración y contraste ≥4.5:1 (dorado `#8a6d00` 4.92:1, muted `#5a6975` 5.22:1).

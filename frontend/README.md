@@ -52,9 +52,11 @@ Desde la raíz: `npm run setup` y `npm run dev` (levanta backend + frontend).
 - `/estudiantes/nuevo` y `/estudiantes/:id/editar` ← `nuevo-estudiante.png` (formulario `POST /estudiantes`)
 - `/estudiantes/:idEstudiante` ← `detalle-estudiante.png` (ficha + criterios + historial)
 - `/evaluaciones/nueva` y `/evaluacion/:idEstudiante` ← `evaluacion-dss.png` (`POST /evaluaciones`)
-- `/becas` — ranking, cupos/presupuesto, generar/revocar asignación, exportar CSV/PDF
+- `/becas` — ranking, cupos/presupuesto, generar/revocar/decidir asignación, exportar CSV/PDF
+- `/seguimiento` — periodos por becario, estados, historial y sugerencia de suspensión
+- `/reportes` — resumen por convocatoria, 3 gráficos, CSV e impresión
 - `/configuracion` — catálogos (carreras, tipos de beca, convocatorias, criterios) con pestañas
-- `/seguimiento`, `/reportes`, `/administracion` (placeholders)
+- `/administracion` — usuarios (crear/editar/activar/eliminar)
 
 Notas: sin backend los servicios usan mocks (`live:false`); umbrales DSS ≥80/60–79/<60 (ver `../docs/DECISIONES.md`).
 
