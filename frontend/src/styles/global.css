@@ -823,7 +823,26 @@ body {
   }
 }
 
-/* Línea de tiempo (historial de eventos) */.timeline {
+/* Impresión de reportes: sin sidebar ni barra de acciones */
+@media print {
+  .sidebar,
+  .sidebar-overlay,
+  .menu-btn,
+  .no-print {
+    display: none;
+  }
+
+  .app-shell {
+    display: block;
+  }
+
+  .page {
+    padding: 0;
+  }
+}
+
+/* Línea de tiempo (historial de eventos) */
+.timeline {
   list-style: none;
   margin: 0;
   padding: 0;

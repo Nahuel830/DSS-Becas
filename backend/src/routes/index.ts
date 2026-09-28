@@ -6,6 +6,7 @@ import * as dev from "../controllers/dev";
 import * as documentos from "../controllers/documentos";
 import * as estudiantes from "../controllers/estudiantes";
 import * as evaluaciones from "../controllers/evaluaciones";
+import * as reportes from "../controllers/reportes";
 import * as seguimiento from "../controllers/seguimiento";
 import { ah } from "../middlewares/async";
 import { validate } from "../middlewares/validate";
@@ -100,6 +101,11 @@ router.post("/asignaciones", validate(asignacionSchema), ah(async (req, res) => 
 }));
 router.put("/asignaciones/:id", ah(asignaciones.actualizar));
 router.delete("/asignaciones/:id", ah(asignaciones.revocar));
+
+// Reportes
+router.get("/reportes/resumen", ah(reportes.resumen));
+router.get("/reportes/ranking.csv", ah(reportes.rankingCsv));
+router.get("/reportes/asignaciones.csv", ah(reportes.asignacionesCsv));
 
 // Seguimiento académico
 router.get("/seguimiento", ah(seguimiento.listar));

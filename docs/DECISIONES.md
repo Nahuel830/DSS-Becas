@@ -44,3 +44,5 @@ Registro de decisiones tomadas por falta de información o por conflicto entre f
 - **D40 Elegibilidad configurable.** `PROMEDIO_MINIMO=51` y `TOPE_INGRESO_SOCIAL=4000` como constantes exportadas en `backend/src/dss/elegibilidad.ts`.
 - **D41 Ranking sin duplicados en espejo.** `mejorPorEstudiante()` en backend; `DashboardPage` agrupa igual en cliente hasta que el resumen del servidor sea la única fuente.
 - **D42 Seguimiento mock espejo.** La regla promedio→estado se duplica en `seguimiento.ts` del frontend con el mismo mínimo; los eventos mock no se registran.
+- **D43 Reportes server-side.** CSV con BOM y ";" + attachment; impresión con `@media print` sin sidebar.
+- **D44 Resumen por convocatoria parcial.** Sin vínculo estudiante-convocatoria en docs: postulantes/evaluados siempre globales; asignaciones y presupuesto sí filtran.

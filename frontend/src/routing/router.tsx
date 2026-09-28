@@ -10,6 +10,7 @@ import { EstudiantesPage } from "../pages/EstudiantesPage";
 import { EvaluacionPage } from "../pages/EvaluacionPage";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import { NuevoEstudiantePage } from "../pages/NuevoEstudiantePage";
+import { ReportesPage } from "../pages/ReportesPage";
 import { PlaceholderPage } from "../pages/PlaceholderPage";
 import { ROUTES } from "./routes";
 
@@ -29,7 +30,7 @@ export const router = createBrowserRouter([
       { path: ROUTES.configuracion, element: <ConfiguracionPage /> },
       { path: ROUTES.seguimiento, element: <SeguimientoPage /> },
       // Sin endpoint ni mock: placeholder hasta fase 2.
-      { path: ROUTES.reportes, element: <PlaceholderPage title="Reportes" /> },
+      { path: ROUTES.reportes, element: <ReportesPage /> },
       { path: ROUTES.administracion, element: <AdministracionPage /> },
       { path: "*", element: <NotFoundPage /> },
     ],

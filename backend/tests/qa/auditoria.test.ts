@@ -277,6 +277,26 @@ describe("E) API", () => {
   });
 });
 
+describe("QA cierre módulo 3 (issue #7)", () => {
+  it("reportes: resumen y CSV", async () => {
+    const r = await request(app).get("/api/reportes/resumen");
+    expect(r.status).toBe(200);
+    for (const k of ["postulantes", "evaluados", "aprobados", "monto_asignado", "presupuesto", "puntaje_promedio", "en_riesgo"]) {
+      expect(typeof r.body[k]).toBe("number");
+    }
+    expect(Array.isArray(r.body.por_carrera)).toBe(true);
+    const csv = await request(app).get("/api/reportes/ranking.csv");
+    expect(csv.status).toBe(200);
+    expect(csv.headers["content-type"]).toContain("text/csv");
+    expect(csv.headers["content-disposition"]).toContain("attachment");
+    expect(csv.text).toContain("Puntaje");
+    expect(csv.text).toContain(";");
+    const csv2 = await request(app).get("/api/reportes/asignaciones.csv");
+    expect(csv2.status).toBe(200);
+    expect(csv2.text.split("\n")[0]).toContain("Estudiante");
+  });
+});
+
 describe("QA cierre módulo 2 (issue #6)", () => {
   it("seguimiento: CRUD con regla automática de estado", async () => {
     const tipo = await request(app).post("/api/tipos-beca").send({ nombre: "QASeg", monto: 100, cupos: 5 });
