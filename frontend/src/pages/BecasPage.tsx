@@ -5,6 +5,7 @@ import { Card } from "../components/Card";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { EmptyState } from "../components/EmptyState";
 import { KpiCard } from "../components/KpiCard";
+import { ObservacionDialog } from "../components/ObservacionDialog";
 import { PageHeader } from "../components/PageHeader";
 import { Spinner } from "../components/Spinner";
 import { USE_MOCKS } from "../services/api/client";
@@ -21,6 +22,7 @@ export function BecasPage() {
   const [convocatoriaId, setConvocatoriaId] = useState("");
   const [tipoBecaId, setTipoBecaId] = useState("");
   const [revocarId, setRevocarId] = useState<number | null>(null);
+  const [decision, setDecision] = useState<{ id: number; estado: string } | null>(null);
   const toast = useToast();
   const queryClient = useQueryClient();
 
@@ -80,19 +82,37 @@ export function BecasPage() {
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "No se pudo generar."),
   });
 
+  const refrescarAsignaciones = () => {
+    queryClient.invalidateQueries({ queryKey: ["ranking"] });
+    queryClient.invalidateQueries({ queryKey: ["resumen-asig"] });
+    queryClient.invalidateQueries({ queryKey: ["asignaciones"] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+  };
+
   const revocar = useMutation({
     mutationFn: (id: number) => asignacionesApi.revocar(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ranking"] });
-      queryClient.invalidateQueries({ queryKey: ["resumen-asig"] });
-      queryClient.invalidateQueries({ queryKey: ["asignaciones"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      refrescarAsignaciones();
       toast.exito("Asignación revocada.");
       setRevocarId(null);
     },
     onError: (e: unknown) => {
       toast.error(e instanceof Error ? e.message : "No se pudo revocar.");
       setRevocarId(null);
+    },
+  });
+
+  const decidir = useMutation({
+    mutationFn: ({ id, estado, observaciones }: { id: number; estado: string; observaciones?: string }) =>
+      asignacionesApi.decidir(id, estado, observaciones),
+    onSuccess: (_data, vars) => {
+      refrescarAsignaciones();
+      toast.exito(`Decisión registrada: ${vars.estado}.`);
+      setDecision(null);
+    },
+    onError: (e: unknown) => {
+      toast.error(e instanceof Error ? e.message : "No se pudo registrar la decisión.");
+      setDecision(null);
     },
   });
 
@@ -210,9 +230,20 @@ export function BecasPage() {
                     <td>{formatPuntaje(a.puntaje)}</td>
                     <td>{a.estado}</td>
                     <td>
-                      <button className="link-btn danger" type="button" onClick={() => setRevocarId(a.id)}>
-                        Revocar
-                      </button>
+                      <span className="row-actions">
+                        <button className="link-btn" type="button" onClick={() => decidir.mutate({ id: a.id, estado: "Aprobada" })}>
+                          Aprobar
+                        </button>
+                        <button className="link-btn" type="button" onClick={() => setDecision({ id: a.id, estado: "Rechazada" })}>
+                          Rechazar
+                        </button>
+                        <button className="link-btn" type="button" onClick={() => setDecision({ id: a.id, estado: "En observación" })}>
+                          Observar
+                        </button>
+                        <button className="link-btn danger" type="button" onClick={() => setRevocarId(a.id)}>
+                          Revocar
+                        </button>
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -230,6 +261,16 @@ export function BecasPage() {
           textoConfirmar="Revocar"
           onConfirmar={() => revocar.mutate(revocarId)}
           onCancelar={() => setRevocarId(null)}
+        />
+      )}
+
+      {decision !== null && (
+        <ObservacionDialog
+          titulo={`${decision.estado === "Aprobada" ? "Aprobar" : decision.estado === "Rechazada" ? "Rechazar" : "Dejar en observación"}`}
+          mensaje="La decisión quedará registrada en el historial del estudiante."
+          textoConfirmar="Guardar decisión"
+          onConfirmar={(obs) => decidir.mutate({ id: decision.id, estado: decision.estado, observaciones: obs })}
+          onCancelar={() => setDecision(null)}
         />
       )}
     </div>

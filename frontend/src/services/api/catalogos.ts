@@ -97,6 +97,18 @@ export const catalogosApi = {
     crear: (d: Partial<CriterioRow>) => apiClient.post<CriterioRow>("/criterios", d),
     actualizar: (id: number, d: Partial<CriterioRow>) => apiClient.put<CriterioRow>(`/criterios/${id}`, d),
     eliminar: (id: number) => apiClient.del<unknown>(`/criterios/${id}`),
+    /** PUT /api/criterios/pesos en lote (#4). En mock solo valida la suma. */
+    actualizarPesos: async (pesos: Array<{ id: number; peso: number }>): Promise<void> => {
+      const suma = pesos.reduce((s, p) => s + p.peso, 0);
+      if (Math.abs(suma - 100) > 0.001) {
+        throw new Error(`Los pesos deben sumar 100 % (actual: ${suma} %).`);
+      }
+      if (USE_MOCKS) {
+        await simularRetardo();
+        return;
+      }
+      await apiClient.put<unknown>("/criterios/pesos", { pesos });
+    },
   },
 };
 

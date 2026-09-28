@@ -2,13 +2,26 @@ import type { Request, Response } from "express";
 import { prisma } from "../config/db";
 import { recomendar } from "../dss/criterios";
 import { calcular, derivarCriterios } from "../dss/motor";
+import { evaluarElegibilidad } from "../dss/elegibilidad";
 import { ordenarRanking } from "../dss/ranking";
 import { HttpError } from "../middlewares/errorHandler";
 
-/** POST /api/evaluaciones/calcular (motor DSS, sin guardar). */
+/** POST /api/evaluaciones/calcular (motor DSS + elegibilidad, sin guardar). */
 export async function calcularPuntaje(req: Request, res: Response): Promise<void> {
   const r = calcular(req.body.criterios);
-  res.json({ id_estudiante: req.body.id_estudiante, ...r });
+  const est = await prisma.estudiante.findUnique({
+    where: { id_estudiante: req.body.id_estudiante },
+    select: { promedio: true, ingreso_familiar: true },
+  });
+  if (!est) throw new HttpError(404, "Estudiante no encontrado");
+  const veredicto = evaluarElegibilidad(est, req.body.tipo_beca);
+  res.json({
+    id_estudiante: req.body.id_estudiante,
+    ...r,
+    recomendacion: veredicto.elegible ? r.recomendacion : "No elegible",
+    elegible: veredicto.elegible,
+    motivos_no_elegible: veredicto.motivos_no_elegible,
+  });
 }
 
 /** POST /api/evaluaciones (guarda + actualiza resultado + evento). */

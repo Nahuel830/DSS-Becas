@@ -54,3 +54,12 @@ export const convocatorias = catalogo("convocatoria", "Convocatoria", (id) =>
   usosAsignacion("id_convocatoria", id),
 );
 export const criterios = catalogo("criterio", "Criterio");
+
+/** PUT /api/criterios/pesos (lote con suma 100 validada por Zod, #4). */
+export async function actualizarPesos(req: Request, res: Response): Promise<void> {
+  const pesos = req.body.pesos as Array<{ id: number; peso: number }>;
+  await prisma.$transaction(
+    pesos.map((p) => prisma.criterio.update({ where: { id: p.id }, data: { peso: p.peso } })),
+  );
+  res.json(await prisma.criterio.findMany({ orderBy: { id: "asc" } }));
+}

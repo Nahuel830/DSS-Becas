@@ -209,6 +209,24 @@ function CrudTab<T extends { id: number }>({ config }: { config: ConfigTab<T> })
 /** Configuración de catálogos (requiere backend real para crear/editar/eliminar). */
 export function ConfiguracionPage() {
   const [tab, setTab] = useState<Tab>("carreras");
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const criteriosCache = useQuery({
+    queryKey: ["cfg-criterios"],
+    queryFn: catalogosApi.criterios.listar,
+    enabled: tab === "criterios",
+  });
+  const guardarPesos = useMutation({
+    mutationFn: () =>
+      catalogosApi.criterios.actualizarPesos(
+        (criteriosCache.data ?? []).map((c) => ({ id: c.id, peso: c.peso })),
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cfg-criterios"] });
+      toast.exito("Pesos guardados (suman 100 %).");
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "No se pudieron guardar los pesos."),
+  });
 
   return (
     <div className="page">
@@ -234,6 +252,21 @@ export function ConfiguracionPage() {
           </button>
         ))}
       </div>
+
+      {tab === "criterios" && !USE_MOCKS && (
+        <div className="toolbar">
+          <Button
+            type="button"
+            onClick={() => guardarPesos.mutate()}
+            disabled={guardarPesos.isPending || (criteriosCache.data ?? []).length === 0}
+          >
+            {guardarPesos.isPending ? "Guardando…" : "Guardar pesos en lote"}
+          </Button>
+          <span className="muted">
+            Suma actual: {(criteriosCache.data ?? []).reduce((s, c) => s + (c.peso ?? 0), 0)} %
+          </span>
+        </div>
+      )}
 
       {tab === "carreras" && (
         <CrudTab<Carrera>

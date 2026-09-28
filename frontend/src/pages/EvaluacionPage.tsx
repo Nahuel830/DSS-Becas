@@ -46,6 +46,7 @@ export function EvaluacionPage() {
   const [error, setError] = useState("");
   const [registrada, setRegistrada] = useState(false);
   const [sinBackend, setSinBackend] = useState(false);
+  const [avisoElegibilidad, setAvisoElegibilidad] = useState<string[] | null>(null);
 
   const dash = useQuery({ queryKey: ["dashboard"], queryFn: fetchDashboard });
   const mutation = useMutation({ mutationFn: evaluacionesApi.create });
@@ -53,6 +54,7 @@ export function EvaluacionPage() {
   const setScore = (k: keyof Scores) => (ev: React.ChangeEvent<HTMLInputElement>) => {
     setRegistrada(false);
     setSinBackend(false);
+    setAvisoElegibilidad(null);
     setScores((s) => ({ ...s, [k]: ev.target.value }));
   };
 
@@ -65,11 +67,12 @@ export function EvaluacionPage() {
         ) / 100
       : null;
 
-  const calcular = (ev: React.FormEvent) => {
+  const calcular = async (ev: React.FormEvent) => {
     ev.preventDefault();
     setError("");
     setRegistrada(false);
     setSinBackend(false);
+    setAvisoElegibilidad(null);
     if (idEstudiante === "") {
       setError("Seleccioná un estudiante.");
       return;
@@ -80,19 +83,36 @@ export function EvaluacionPage() {
     }
     if (puntajeFinal === null) return;
     const [r, a, s, c, v] = nums as number[];
-    mutation.mutate(
-      {
-        id_estudiante: Number(idEstudiante),
-        fecha,
-        puntaje_academico: Math.round(((r + a) / 2) * 100) / 100,
-        puntaje_social: Math.round(((s + c + v) / 3) * 100) / 100,
-        puntaje_final: puntajeFinal,
-      },
-      {
-        onSuccess: () => setRegistrada(true),
-        onError: () => setSinBackend(true),
-      },
-    );
+    // #3: en modo real el motor confirma puntajes y elegibilidad antes de guardar.
+    let payload = {
+      id_estudiante: Number(idEstudiante),
+      fecha,
+      puntaje_academico: Math.round(((r + a) / 2) * 100) / 100,
+      puntaje_social: Math.round(((s + c + v) / 3) * 100) / 100,
+      puntaje_final: puntajeFinal,
+    };
+    if (!USE_MOCKS) {
+      try {
+        const calc = await evaluacionesApi.calcular(Number(idEstudiante), {
+          rendimiento: r, asistencia: a, situacion: s, carga: c, vulnerable: v,
+        });
+        if (!calc.elegible) setAvisoElegibilidad(calc.motivos_no_elegible);
+        payload = {
+          id_estudiante: Number(idEstudiante),
+          fecha,
+          puntaje_academico: calc.puntaje_academico,
+          puntaje_social: calc.puntaje_social,
+          puntaje_final: calc.puntaje_final,
+        };
+      } catch {
+        setError("No se pudo calcular con el servidor.");
+        return;
+      }
+    }
+    mutation.mutate(payload, {
+      onSuccess: () => setRegistrada(true),
+      onError: () => setSinBackend(true),
+    });
   };
 
   return (
@@ -134,6 +154,9 @@ export function EvaluacionPage() {
               </div>
             ))}
             {error && <p className="error">{error}</p>}
+            {avisoElegibilidad && avisoElegibilidad.length > 0 && (
+              <p className="error">No elegible: {avisoElegibilidad.join(" ")}</p>
+            )}
             <button className="btn btn-primary" type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? "Registrando…" : "Calcular puntaje DSS"}
             </button>

@@ -63,6 +63,7 @@ export const evaluacionSchema = z.object({
 export const calcularSchema = z.object({
   id_estudiante: z.number().int().positive(),
   criterios: criteriosSchema,
+  tipo_beca: z.enum(["Excelencia", "Social"]).optional(),
 });
 
 export const becaSchema = z.object({
@@ -87,13 +88,43 @@ export const tipoBecaSchema = z.object({
   activa: z.boolean().optional(),
 });
 
-export const convocatoriaSchema = z.object({
+function refinarFechas(
+  v: { inicio?: string; fin?: string },
+  ctx: { addIssue: (p: { code: "custom"; path: string[]; message: string }) => void },
+): void {
+  // #5: fin posterior a inicio (solo cuando ambas fechas están presentes).
+  if (v.inicio && v.fin && v.fin <= v.inicio) {
+    ctx.addIssue({ code: "custom", path: ["fin"], message: "La fecha de fin debe ser posterior a la de inicio." });
+  }
+}
+
+const convocatoriaBase = z.object({
   nombre: z.string().min(1, "Requerido.").max(100),
   gestion: z.string().min(1, "Requerida."),
   inicio: z.string().optional(),
   fin: z.string().optional(),
   estado: z.enum(["Abierta", "Cerrada", "En curso"]).optional(),
   presupuesto: z.number().min(0).optional(),
+});
+
+export const convocatoriaSchema = convocatoriaBase.superRefine((v, ctx) => {
+  refinarFechas(v, { addIssue: (p) => ctx.addIssue({ ...p, code: z.ZodIssueCode.custom }) });
+});
+
+export const convocatoriaParcialSchema = convocatoriaBase.partial().superRefine((v, ctx) => {
+  refinarFechas(v, { addIssue: (p) => ctx.addIssue({ ...p, code: z.ZodIssueCode.custom }) });
+});
+
+export const pesosSchema = z.object({
+  pesos: z
+    .array(z.object({ id: z.number().int().positive(), peso: z.number().min(0).max(100) }))
+    .min(1, "Se requiere al menos un criterio."),
+}).superRefine((v, ctx) => {
+  // #4: los pesos activos deben sumar 100.
+  const suma = v.pesos.reduce((s, p) => s + p.peso, 0);
+  if (Math.abs(suma - 100) > 0.001) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["pesos"], message: `Los pesos deben sumar 100 % (actual: ${suma} %).` });
+  }
 });
 
 export const criterioSchema = z.object({
@@ -109,7 +140,8 @@ export const asignacionSchema = z.object({
   id_convocatoria: z.number().int().positive(),
   id_tipo_beca: z.number().int().positive(),
   puntaje: z.number().min(0).max(100),
-  estado: z.enum(["Aprobada", "En espera", "Rechazada"]).optional(),
+  estado: z.enum(["Aprobada", "En espera", "Rechazada", "En observación"]).optional(),
+  observaciones: z.string().optional(),
 });
 
 export const generarSchema = z.object({

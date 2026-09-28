@@ -152,6 +152,7 @@ model Asignacion {
   tipoBeca         TipoBeca     @relation(fields: [id_tipo_beca], references: [id], onDelete: Restrict)
   puntaje          Float
   estado           String       @default("Aprobada")
+  observaciones    String?
   createdAt        DateTime     @default(now())
 
   @@unique([id_estudiante, id_convocatoria, id_tipo_beca])

@@ -169,12 +169,9 @@ describe("B) Integridad", () => {
 });
 
 describe("C) Reglas DSS", () => {
-  it("C1: pesos suman 100; el backend debería rechazar 90/110", async () => {
-    const lista = await request(app).get("/api/criterios");
-    const suma = (lista.body as Array<{ peso: number }>).reduce((s, c) => s + c.peso, 0);
-    expect(suma).toBe(0); // base qa.db vacía: no hay criterios semilla
-    const malo = await request(app).post("/api/criterios").send({ nombre: "QAPeso", peso: 110 });
-    // HALLAZGO: sin validación de suma en el backend.
+  it("C1: el backend rechaza pesos que rompen la suma 100", async () => {
+    // Determinista: un peso 110 siempre rompe cualquier suma válida.
+    const malo = await request(app).post("/api/criterios").send({ nombre: "QAPesoMalo", peso: 110 });
     expect(malo.status).toBe(400);
   });
 
@@ -193,13 +190,17 @@ describe("C) Reglas DSS", () => {
     expect(r2.body.recomendacion).toBe("Recomendado");
   });
 
-  it("C3: promedio bajo debería dar No elegible (regla inexistente)", async () => {
+  it("C3: promedio bajo da No elegible con motivos", async () => {
+    const est = await request(app).post("/api/estudiantes").send({
+      nombre: "Ba", apellido: "Jo", ci: "9000101", carrera: "X", promedio: 40, ingreso_familiar: 5500,
+    });
     const r = await request(app).post("/api/evaluaciones/calcular").send({
-      id_estudiante: 1,
+      id_estudiante: est.body.id_estudiante,
       criterios: { rendimiento: 10, asistencia: 10, situacion: 10, carga: 10, vulnerable: 10 },
     });
-    // HALLAZGO: no hay filtros duros de elegibilidad; solo sale "En riesgo".
     expect(r.body.elegible).toBe(false);
+    expect(r.body.motivos_no_elegible.length).toBeGreaterThan(0);
+    expect(r.body.recomendacion).toBe("No elegible");
   });
 
   it("C4: generar no supera cupos ni presupuesto", async () => {
@@ -273,5 +274,83 @@ describe("E) API", () => {
     });
     expect(r.status).toBe(201);
     expect(r.body.id_estudiante).toBeGreaterThan(0);
+  });
+});
+
+describe("QA cierre módulo 1 (issues #1–#5)", () => {
+  it("#1: el resumen muestra una fila por estudiante (mejor puntaje)", async () => {
+    const est = await request(app).post("/api/estudiantes").send({
+      nombre: "Du", apellido: "Plicado", ci: "9100001", carrera: "X", promedio: 90, ingreso_familiar: 1000,
+    });
+    const id = est.body.id_estudiante as number;
+    for (const final of [70, 90.4]) {
+      await request(app).post("/api/evaluaciones").send({
+        id_estudiante: id, fecha: "2025-09-01",
+        puntaje_academico: final, puntaje_social: final, puntaje_final: final,
+      });
+    }
+    const r = await request(app).get("/api/dashboard/resumen");
+    const filas = (r.body.ranking as Array<{ id?: number; estudiante: string; puntaje: number }>);
+    const delEst = filas.filter((f) => f.estudiante.includes("Du Plicado"));
+    expect(delEst.length).toBe(1);
+    expect(delEst[0].puntaje).toBe(90.4);
+  });
+
+  it("#4: bulk de pesos válido e inválido", async () => {
+    const lista = await request(app).get("/api/criterios");
+    const base = (lista.body as Array<{ id: number; peso: number }>).map((c) => ({ id: c.id, peso: c.peso }));
+    if (base.length > 0) {
+      expect((await request(app).put("/api/criterios/pesos").send({ pesos: base })).status).toBe(200);
+      const mal = [{ ...base[0], peso: base[0].peso + 10 }, ...base.slice(1)];
+      const r = await request(app).put("/api/criterios/pesos").send({ pesos: mal });
+      expect(r.status).toBe(400);
+    }
+  });
+
+  it("#3: elegibilidad con motivos", async () => {
+    const bajo = await request(app).post("/api/estudiantes").send({
+      nombre: "Ba", apellido: "Jo", ci: "9100002", carrera: "X", promedio: 40, ingreso_familiar: 5500,
+    });
+    const r = await request(app).post("/api/evaluaciones/calcular").send({
+      id_estudiante: bajo.body.id_estudiante,
+      criterios: { rendimiento: 40, asistencia: 60, situacion: 30, carga: 40, vulnerable: 35 },
+      tipo_beca: "Social",
+    });
+    expect(r.body.elegible).toBe(false);
+    expect(r.body.motivos_no_elegible.length).toBeGreaterThanOrEqual(2);
+    expect(r.body.recomendacion).toBe("No elegible");
+    const alto = await request(app).post("/api/estudiantes").send({
+      nombre: "Al", apellido: "To", ci: "9100003", carrera: "X", promedio: 90, ingreso_familiar: 2000,
+    });
+    const r2 = await request(app).post("/api/evaluaciones/calcular").send({
+      id_estudiante: alto.body.id_estudiante,
+      criterios: { rendimiento: 90, asistencia: 90, situacion: 88, carga: 80, vulnerable: 75 },
+    });
+    expect(r2.body.elegible).toBe(true);
+    expect(r2.body.motivos_no_elegible).toEqual([]);
+  });
+
+  it("#2: decisión con observaciones obligatorias", async () => {
+    const tipo = await request(app).post("/api/tipos-beca").send({ nombre: "QADec", monto: 100, cupos: 5 });
+    const conv = await request(app).post("/api/convocatorias").send({ nombre: "ConvQADec", gestion: "2025-QA" });
+    const est = await request(app).post("/api/estudiantes").send({
+      nombre: "De", apellido: "Ci", ci: "9100004", carrera: "X", promedio: 85, ingreso_familiar: 2000,
+    });
+    const asig = await request(app).post("/api/asignaciones").send({
+      id_estudiante: est.body.id_estudiante, id_convocatoria: conv.body.id,
+      id_tipo_beca: tipo.body.id, puntaje: 85,
+    });
+    expect(
+      (await request(app).put(`/api/asignaciones/${asig.body.id}`).send({ estado: "Rechazada" })).status,
+    ).toBe(400);
+    expect(
+      (await request(app).put(`/api/asignaciones/${asig.body.id}`).send({ estado: "Rechazada", observaciones: "corta" })).status,
+    ).toBe(400);
+    const ok = await request(app).put(`/api/asignaciones/${asig.body.id}`).send({
+      estado: "En observación", observaciones: "Falta certificado de ingresos del hogar.",
+    });
+    expect(ok.status).toBe(200);
+    const hist = await request(app).get(`/api/estudiantes/${est.body.id_estudiante}/historial`);
+    expect(JSON.stringify(hist.body)).toContain("En observación");
   });
 });

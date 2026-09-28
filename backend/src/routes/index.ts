@@ -13,11 +13,13 @@ import {
   becaSchema,
   calcularSchema,
   carreraSchema,
+  convocatoriaParcialSchema,
   convocatoriaSchema,
   criterioSchema,
   estudianteSchema,
   evaluacionSchema,
   generarSchema,
+  pesosSchema,
   tipoBecaSchema,
 } from "../validators/schemas";
 import { upload } from "../controllers/documentos";
@@ -76,10 +78,11 @@ router.delete("/tipos-beca/:id", ah(catalogos.tiposBeca.eliminar));
 router.get("/convocatorias", ah(catalogos.convocatorias.listar));
 router.get("/convocatorias/:id", ah(catalogos.convocatorias.obtener));
 router.post("/convocatorias", validate(convocatoriaSchema), ah(catalogos.convocatorias.crear));
-router.put("/convocatorias/:id", validate(convocatoriaSchema.partial()), ah(catalogos.convocatorias.actualizar));
+router.put("/convocatorias/:id", validate(convocatoriaParcialSchema), ah(catalogos.convocatorias.actualizar));
 router.delete("/convocatorias/:id", ah(catalogos.convocatorias.eliminar));
 
 router.get("/criterios", ah(catalogos.criterios.listar));
+router.put("/criterios/pesos", validate(pesosSchema), ah(catalogos.actualizarPesos));
 router.get("/criterios/:id", ah(catalogos.criterios.obtener));
 router.post("/criterios", validate(criterioSchema), ah(catalogos.criterios.crear));
 router.put("/criterios/:id", validate(criterioSchema.partial()), ah(catalogos.criterios.actualizar));

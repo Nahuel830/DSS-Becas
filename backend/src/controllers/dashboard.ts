@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { prisma } from "../config/db";
-import { ordenarRanking } from "../dss/ranking";
+import { ordenarRanking, mejorPorEstudiante } from "../dss/ranking";
 import { recomendar } from "../dss/criterios";
 
 /** GET /api/dashboard/resumen (indicadores y gráficos calculados con consultas reales). */
@@ -19,13 +19,15 @@ export async function resumen(_req: Request, res: Response): Promise<void> {
     else resumen.en_riesgo += 1;
   }
   const ranking = ordenarRanking(
-    evaluaciones.map((ev) => ({
-      id_estudiante: ev.id_estudiante,
-      nombre: `${ev.estudiante?.nombre ?? ""} ${ev.estudiante?.apellido ?? ""}`.trim() || `ID ${ev.id_estudiante}`,
-      puntaje_final: ev.puntaje_final,
-      promedio: 0,
-      ingreso_familiar: 0,
-    })),
+    mejorPorEstudiante(
+      evaluaciones.map((ev) => ({
+        id_estudiante: ev.id_estudiante,
+        nombre: `${ev.estudiante?.nombre ?? ""} ${ev.estudiante?.apellido ?? ""}`.trim() || `ID ${ev.id_estudiante}`,
+        puntaje_final: ev.puntaje_final,
+        promedio: 0,
+        ingreso_familiar: 0,
+      })),
+    ),
   )
     .slice(0, 5)
     .map((f, i) => ({
