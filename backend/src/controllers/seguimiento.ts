@@ -29,8 +29,42 @@ export async function listar(req: Request, res: Response): Promise<void> {
   );
 }
 
-/** GET /api/seguimiento/asignacion/:id (historial por becario + sugerencia). */
-export async function porAsignacion(req: Request, res: Response): Promise<void> {
+/** GET /api/seguimiento/becarios (una fila por asignación Aprobada). */
+export async function becarios(req: Request, res: Response): Promise<void> {
+  const { convocatoriaId, carrera, estado } = req.query as Record<string, string | undefined>;
+  const asignaciones = await prisma.asignacion.findMany({
+    where: {
+      estado: "Aprobada",
+      ...(convocatoriaId ? { id_convocatoria: Number(convocatoriaId) } : {}),
+      ...(carrera ? { estudiante: { carrera } } : {}),
+    },
+    include: {
+      estudiante: { select: { id_estudiante: true, nombre: true, apellido: true, carrera: true } },
+      convocatoria: { select: { id: true, nombre: true } },
+      tipoBeca: { select: { id: true, nombre: true } },
+      seguimientos: { orderBy: [{ periodo: "asc" }, { id: "asc" }] },
+    },
+    orderBy: { estudiante: { apellido: "asc" } },
+  });
+  const filas = asignaciones.map((a) => {
+    const segs = a.seguimientos;
+    const ultimo = segs.length > 0 ? segs[segs.length - 1] : undefined;
+    return {
+      id_asignacion: a.id,
+      estudiante: a.estudiante,
+      convocatoria: a.convocatoria,
+      tipoBeca: a.tipoBeca,
+      total_periodos: segs.length,
+      ultimo_periodo: ultimo?.periodo ?? null,
+      ultimo_promedio: ultimo?.promedio_periodo ?? null,
+      estado: ultimo?.estado ?? "Sin registros",
+      sugerencia_suspension: sugerirSuspension(segs.map((s) => s.estado)),
+    };
+  });
+  res.json(estado ? filas.filter((f) => f.estado === estado) : filas);
+}
+
+/** GET /api/seguimiento/asignacion/:id (historial por becario + sugerencia). */export async function porAsignacion(req: Request, res: Response): Promise<void> {
   const id = Number(req.params.id);
   const historial = await prisma.seguimiento.findMany({
     where: { id_asignacion: id },

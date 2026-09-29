@@ -125,6 +125,7 @@ router.get("/reportes/asignaciones.csv", P("reportes:ver"), ah(reportes.asignaci
 
 // Seguimiento académico
 router.get("/seguimiento", P("seguimiento:ver"), ah(seguimiento.listar));
+router.get("/seguimiento/becarios", P("seguimiento:ver"), ah(seguimiento.becarios));
 router.get("/seguimiento/asignacion/:id", P("seguimiento:ver"), ah(seguimiento.porAsignacion));
 router.post("/seguimiento", P("seguimiento:editar"), validate(seguimientoSchema), ah(seguimiento.crear));
 router.put("/seguimiento/:id", P("seguimiento:editar"), validate(seguimientoSchema.partial()), ah(seguimiento.actualizar));

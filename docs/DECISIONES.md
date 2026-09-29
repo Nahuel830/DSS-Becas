@@ -69,3 +69,4 @@ Registro de decisiones tomadas por falta de información o por conflicto entre f
 - **D65 Permisos mock duplicados.** El mock de login embebe el mapa para demo; en modo real manda el servidor (`/auth/me`, login).
 - **D66 `catalogos:ver` para Consulta.** Solo lectura para selects/filtros; la página Configuración sigue oculta y su escritura es solo Admin.
 - **D67 Dashboard sin gate propio.** Visible a toda sesión; cada dato que muestra ya lleva su permiso (`estudiantes:ver`, `evaluaciones:ver`, etc.).
+- **D68 Seguimiento por becario.** `GET /api/seguimiento/becarios` devuelve una fila por asignación Aprobada (con último periodo y sugerencia vía `sugerirSuspension()`); `GET /api/seguimiento` sigue por periodo. Filtro `estado=Sin registros` incluido.

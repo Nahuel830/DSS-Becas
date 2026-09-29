@@ -34,6 +34,7 @@ Desde la raíz del repo: `npm run setup` (todo lo anterior) y `npm run dev` (bac
 - `GET /api/ranking?convocatoriaId=&tipoBecaId=`, `GET /api/dashboard/resumen`
 - Catálogos CRUD: `/api/carreras`, `/api/tipos-beca`, `/api/convocatorias`, `/api/criterios` (409 si tienen asignaciones)
 - Asignaciones: `GET /`, `GET /resumen`, `POST /generar`, `POST /`, `PUT /:id`, `DELETE /:id`
+- Seguimiento: `GET /` (por periodo), `GET /becarios` (una fila por asignación Aprobada), `GET /asignacion/:id`, `POST /`, `PUT /:id`
 - Documentos: `POST /api/estudiantes/:id/documentos` (multer, PDF/JPG/PNG ≤5 MB), `GET /:id/documentos`, `GET /api/documentos/:id/descarga`, `DELETE /api/documentos/:id`
 - Becas: `GET /api/becas`, `POST /api/becas`
 
