@@ -22,7 +22,8 @@ Registro de decisiones tomadas por falta de información o por conflicto entre f
 - **D18 Sin GET /becas en el contrato.** `becasApi.list()` solo devuelve mock; en modo real (`VITE_USE_MOCKS=false`) propaga el error y la vista muestra Reintentar.
 - **D19 Persistencia en `services/api/db.ts`.** El encargo pide `mocks/db.ts`, pero AGENTS.md fija `services/api/` (D4): la db genérica localStorage (`getAll/getById/create/update/remove/reset/eventosDe`, clave `dss-becas-db`, siembra desde `mocks.ts`) vive ahí.
 - **D20 Menú en avatar PB.** El PNG solo muestra el avatar; se agregó menú mínimo con "Restablecer datos de prueba" + confirmación (función exigida sin ubicación definida).
-- **D21 Campos extendidos solo locales.** CI, género, contacto, facultad, semestre, hogar, procedencia, motivo, documentos, etc. se guardan en localStorage (`EstudianteExtendido`); a la API viaja solo el subconjunto del contrato.
+- **D21 SUPERADA — campos extendidos viajan a la API.** El schema Prisma ya incluye ci, género, contacto, facultad, semestre, hogar, procedencia, discapacidad, situación laboral, motivo, etc.: `create` envía el formulario completo (menos el id) y el test "viaja íntegro" lo verifica campo por campo. `EstudianteExtendido` sigue existiendo solo como tipo local.
+- **D50 Mocks solo con `VITE_USE_MOCKS=true` explícito.** Por defecto todo va a la API real; en modo demo el Header muestra banner fijo y ante fallo de `/health` se muestra "Sin conexión" (nunca caída silenciosa a mocks).
 - **D22 Timestamps vía eventos.** Sin campos de fecha en el contrato: creación/edición/baja/evaluación quedan en el log de eventos con fecha ISO.
 - **D23 `/evaluacion/:idEstudiante` provisional.** Reutiliza la vista actual con preselección; Prompt 3 la reemplazará por la evaluación dedicada.
 - **D24 Filtros/orden/paginación no están en el PNG** pero el encargo los exige: columnas y textos del PNG intactos; solo se agrega la barra de herramientas.

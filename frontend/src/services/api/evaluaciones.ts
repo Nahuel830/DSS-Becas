@@ -61,4 +61,12 @@ export const evaluacionesApi = {
     }
     await apiClient.post<unknown>("/evaluaciones", data);
   },
+  /** POST /api/evaluaciones/evaluar-todos (evalúa pendientes con criterios derivados). */
+  evaluarTodos: async (): Promise<{ evaluadas: number }> => {
+    if (USE_MOCKS) {
+      await simularRetardo();
+      return { evaluadas: 0 };
+    }
+    return apiClient.post<{ evaluadas: number }>("/evaluaciones/evaluar-todos", {});
+  },
 };

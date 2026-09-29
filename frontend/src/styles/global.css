@@ -604,6 +604,23 @@ body {
   }
 }
 
+/* Banner fijo de estado: modo demo o sin conexión (nunca mocks silenciosos) */
+.demo-banner {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--gold);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  text-align: center;
+  padding: 6px 12px;
+}
+
+.demo-banner.offline {
+  background: var(--danger);
+}
+
 /* Menú de usuario */
 .user-menu {
   margin-left: auto;

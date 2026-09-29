@@ -1,25 +1,13 @@
 import type { EstudianteExtendido } from "../../models/domain";
 import { clasificarPuntaje, nombreCompleto } from "../../utils/dss";
-import { USE_MOCKS, apiClient, simularRetardo } from "./client";
+import { ApiError, USE_MOCKS, apiClient, simularRetardo } from "./client";
 import { db } from "./db";
-import type { Estudiante, FiltrosEstudiantes, Pagina } from "./types";
+import type { FiltrosEstudiantes, Pagina } from "./types";
 
 /** Fila de gestión: estudiante + puntaje y estado derivados. */
 export interface EstudianteListado extends EstudianteExtendido {
   puntaje_final: number | null;
   estado_beca: string;
-}
-
-/** Subconjunto del contrato para la API real (D21: los extras solo viven en local). */
-function aContrato(e: EstudianteExtendido): Estudiante {
-  return {
-    id_estudiante: e.id_estudiante,
-    nombre: e.nombre,
-    apellido: e.apellido,
-    carrera: e.carrera,
-    promedio: e.promedio,
-    ingreso_familiar: e.ingreso_familiar,
-  };
 }
 
 /** Emula el listado del servidor sobre la db local (misma forma de respuesta). */
@@ -102,8 +90,10 @@ export const estudiantesApi = {
     }
     try {
       return await apiClient.get<EstudianteExtendido>(`/estudiantes/${id}`);
-    } catch {
-      return undefined;
+    } catch (e: unknown) {
+      // 404 real → no encontrado; otro error → se propaga (sin mocks silenciosos).
+      if (e instanceof ApiError && e.status === 404) return undefined;
+      throw e;
     }
   },
 
@@ -121,7 +111,10 @@ export const estudiantesApi = {
       });
       return creado;
     }
-    return apiClient.post<EstudianteExtendido>("/estudiantes", aContrato(data));
+    // La API acepta todos los campos del formulario (D21 superada): solo se excluye el id.
+    const { id_estudiante: _id, ...resto } = data;
+    void _id;
+    return apiClient.post<EstudianteExtendido>("/estudiantes", resto);
   },
 
   /** PUT /estudiantes/:id (mock: db; real: supone endpoint, propaga error si no existe). */

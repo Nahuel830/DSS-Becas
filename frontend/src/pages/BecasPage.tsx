@@ -12,6 +12,7 @@ import { USE_MOCKS } from "../services/api/client";
 import { asignacionesApi, type FilaRanking } from "../services/api/asignaciones";
 import { catalogosApi } from "../services/api/catalogos";
 import { fetchDashboard } from "../services/api/dashboard";
+import { evaluacionesApi } from "../services/api/evaluaciones";
 import { useToast } from "../state/ToastContext";
 import { clasificarPuntaje, nombreCompleto } from "../utils/dss";
 import { exportarCSV, exportarPDF } from "../utils/export";
@@ -82,6 +83,20 @@ export function BecasPage() {
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "No se pudo generar."),
   });
 
+  const evaluarPendientes = useMutation({
+    mutationFn: () => evaluacionesApi.evaluarTodos(),
+    onSuccess: (r) => {
+      queryClient.invalidateQueries({ queryKey: ["ranking"] });
+      queryClient.invalidateQueries({ queryKey: ["resumen-asig"] });
+      queryClient.invalidateQueries({ queryKey: ["asignaciones"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["estudiantes"] });
+      queryClient.invalidateQueries({ queryKey: ["resultado"] });
+      toast.exito(`Evaluación masiva: ${r.evaluadas} pendientes evaluados.`);
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "No se pudo evaluar."),
+  });
+
   const refrescarAsignaciones = () => {
     queryClient.invalidateQueries({ queryKey: ["ranking"] });
     queryClient.invalidateQueries({ queryKey: ["resumen-asig"] });
@@ -140,6 +155,16 @@ export function BecasPage() {
         {!USE_MOCKS && paramsListos && (
           <Button type="button" onClick={() => generar.mutate()} disabled={generar.isPending}>
             {generar.isPending ? "Generando…" : "Generar asignación"}
+          </Button>
+        )}
+        {!USE_MOCKS && (
+          <Button
+            variant="secondary"
+            type="button"
+            onClick={() => evaluarPendientes.mutate()}
+            disabled={evaluarPendientes.isPending}
+          >
+            {evaluarPendientes.isPending ? "Evaluando…" : "Evaluar pendientes"}
           </Button>
         )}
         {filas.length > 0 && (

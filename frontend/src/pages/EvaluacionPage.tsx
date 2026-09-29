@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Card } from "../components/Card";
@@ -10,6 +10,7 @@ import { ROUTES } from "../routing/routes";
 import { USE_MOCKS } from "../services/api/client";
 import { fetchDashboard } from "../services/api/dashboard";
 import { evaluacionesApi } from "../services/api/evaluaciones";
+import { useToast } from "../state/ToastContext";
 import { PESOS_CRITERIOS, clasificarPuntaje, nombreCompleto } from "../utils/dss";
 import { formatPuntaje } from "../utils/format";
 
@@ -49,7 +50,11 @@ export function EvaluacionPage() {
   const [avisoElegibilidad, setAvisoElegibilidad] = useState<string[] | null>(null);
 
   const dash = useQuery({ queryKey: ["dashboard"], queryFn: fetchDashboard });
-  const mutation = useMutation({ mutationFn: evaluacionesApi.create });
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: evaluacionesApi.create,
+  });
 
   const setScore = (k: keyof Scores) => (ev: React.ChangeEvent<HTMLInputElement>) => {
     setRegistrada(false);
@@ -110,7 +115,15 @@ export function EvaluacionPage() {
       }
     }
     mutation.mutate(payload, {
-      onSuccess: () => setRegistrada(true),
+      onSuccess: () => {
+        setRegistrada(true);
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["estudiantes"] });
+        queryClient.invalidateQueries({ queryKey: ["resultado"] });
+        queryClient.invalidateQueries({ queryKey: ["historial"] });
+        queryClient.invalidateQueries({ queryKey: ["ranking"] });
+        toast.exito("Evaluación registrada.");
+      },
       onError: () => setSinBackend(true),
     });
   };

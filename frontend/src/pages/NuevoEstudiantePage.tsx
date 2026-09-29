@@ -249,6 +249,7 @@ export function NuevoEstudiantePage() {
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["estudiante", nuevoId] });
       queryClient.invalidateQueries({ queryKey: ["estudiantes"] });
+      queryClient.invalidateQueries({ queryKey: ["historial", nuevoId] });
       toast.exito(modoEdicion ? "Estudiante actualizado." : "Estudiante registrado.");
       navigate(`/estudiantes/${nuevoId}`);
     },

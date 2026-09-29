@@ -2,8 +2,8 @@
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ?? "http://localhost:3001/api";
 
-/** true → mocks locales con retardo; false → API real. */
-export const USE_MOCKS = (import.meta.env.VITE_USE_MOCKS as string | undefined) !== "false";
+/** true solo si VITE_USE_MOCKS === "true" explícitamente; por defecto API real. */
+export const USE_MOCKS = (import.meta.env.VITE_USE_MOCKS as string | undefined) === "true";
 
 /** Retardo simulado de red en modo mock (300 ms por defecto). */
 export function simularRetardo(ms = 300): Promise<void> {
@@ -59,6 +59,8 @@ export const apiClient = {
   put: <T>(path: string, body: unknown) =>
     request<T>(path, { method: "PUT", body: JSON.stringify(body) }),
   del: <T>(path: string) => request<T>(path, { method: "DELETE" }),
+  /** GET /health del backend (verifica conexión real). */
+  health: () => request<{ estado: string }>("/health"),
 };
 
 export { API_BASE_URL };

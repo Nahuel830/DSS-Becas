@@ -14,17 +14,17 @@ export const resultadosApi = {
     return apiClient.get<Resultado>(`/resultados/${idEstudiante}`);
   },
 
-  /** Igual que getByEstudiante, indicando si el dato es real o mock. */
+  /**
+   * Igual que getByEstudiante, indicando si el dato es real o mock.
+   * En modo real los errores se propagan (sin caída silenciosa a mocks):
+   * la UI muestra "Sin conexión con el servidor".
+   */
   getByEstudianteConFallback: async (idEstudiante: number): Promise<{ data: Resultado | undefined; live: boolean }> => {
     if (USE_MOCKS) {
       await simularRetardo();
       return { data: db.getAll("resultados").find((r) => r.id_estudiante === idEstudiante), live: false };
     }
-    try {
-      const data = await apiClient.get<Resultado>(`/resultados/${idEstudiante}`);
-      return { data, live: true };
-    } catch {
-      return { data: db.getAll("resultados").find((r) => r.id_estudiante === idEstudiante), live: false };
-    }
+    const data = await apiClient.get<Resultado>(`/resultados/${idEstudiante}`);
+    return { data, live: true };
   },
 };

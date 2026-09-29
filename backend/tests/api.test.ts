@@ -167,4 +167,42 @@ describe("API", () => {
     const lista = await request(app).get("/api/estudiantes?pageSize=50");
     expect(lista.body.total).toBe(30);
   });
+
+  it("estudiante con todos los campos viaja íntegro a la base", async () => {
+    const payload = {
+      nombre: "Íntegro",
+      apellido: "Pérez",
+      ci: "6000001",
+      fecha_nacimiento: "2001-04-12",
+      genero: "masculino",
+      telefono: "77712345",
+      correo: "integro@universidad.bo",
+      direccion: "Calle 123",
+      ciudad: "La Paz",
+      carrera: "Derecho",
+      codigo_universitario: "U-6001",
+      facultad: "Derecho",
+      semestre: 5,
+      promedio: 82.5,
+      materias_aprobadas: 30,
+      materias_reprobadas: 2,
+      anio_ingreso: 2022,
+      ingreso_familiar: 2800.5,
+      integrantes_hogar: 4,
+      dependientes: 2,
+      tipo_vivienda: "propia",
+      procedencia: "urbano",
+      discapacidad: "no",
+      situacion_laboral: "estudiante",
+      motivo: "Apoyo económico",
+    };
+    const creado = await request(app).post("/api/estudiantes").send(payload);
+    expect(creado.status).toBe(201);
+    const leido = await request(app).get(`/api/estudiantes/${creado.body.id_estudiante}`);
+    expect(leido.status).toBe(200);
+    for (const [campo, valor] of Object.entries(payload)) {
+      expect(leido.body[campo], campo).toEqual(valor);
+    }
+    await request(app).delete(`/api/estudiantes/${creado.body.id_estudiante}`).expect(204);
+  });
 });
