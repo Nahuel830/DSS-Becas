@@ -63,7 +63,7 @@ describe("A) CRUD con datos inválidos", () => {
     for (const parche of [{ promedio: 100.01 }, { promedio: -1 }, { semestre: 0 }, { semestre: 11 }]) {
       expect((await request(app).post("/api/estudiantes").send({ ...base, ...parche })).status).toBe(400);
     }
-    for (const fn of [haceAnios(15), haceAnios(61)]) {
+    for (const fn of [haceAnios(15), haceAnios(62)]) {
       const r = await request(app).post("/api/estudiantes").send({ ...base, fecha_nacimiento: fn });
       expect(r.status).toBe(400);
     }

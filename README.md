@@ -128,6 +128,20 @@ Ver la base: `cd backend && npm run db:studio`. Puertos: backend :3001, frontend
 
 ---
 
+## Acceso desde otra PC en la misma red
+
+1. En esta PC (la que corre los servidores), obtené tu IP: abrí PowerShell y ejecutá `ipconfig`. Buscá "Adaptador de LAN inalámbrica Wi-Fi" y anotá la "Dirección IPv4" (p. ej. `192.168.1.50`).
+2. Asegurate de que backend (`npm run dev` en `backend/`) y frontend (`npm run dev` en `frontend/`) estén corriendo.
+3. Desde la otra PC, abrí en el navegador `http://IP:5173` (p. ej. `http://192.168.1.50:5173`). El frontend usa `/api` relativo y el proxy de Vite lo dirige al backend; el backend acepta orígenes de la red local (ver `CORS_LAN` en `backend/.env.example`).
+4. Si el navegador da `ERR_CONNECTION_REFUSED`, permití los puertos en el Firewall de Windows (PowerShell como administrador):
+
+```powershell
+New-NetFirewallRule -DisplayName "DSS-Becas frontend" -Direction Inbound -LocalPort 5173 -Protocol TCP -Action Allow
+New-NetFirewallRule -DisplayName "DSS-Becas backend" -Direction Inbound -LocalPort 3001 -Protocol TCP -Action Allow
+```
+
+---
+
 ## Herramientas utilizadas
 
 - **GitHub:** Gestión del repositorio y control de versiones.
