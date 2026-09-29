@@ -22,6 +22,7 @@ import { MOCK_CRITERIOS } from "../services/api/mocks";
 import type { EventoHistorial } from "../services/api/types";
 import { useToast } from "../state/ToastContext";
 import { clasificarPuntaje, codigoEstudiante, getEvaluacion, nombreCompleto } from "../utils/dss";
+import { useAuth } from "../state/AuthContext";
 import { formatFecha, formatMonedaBs, formatPuntaje } from "../utils/format";
 
 const ESTADOS_VALIDOS: EstadoEstudiante[] = ["Recomendado", "En revisión", "En riesgo", "Pendiente"];
@@ -45,6 +46,7 @@ export function DetalleEstudiantePage() {
   const valido = Number.isInteger(id) && id > 0;
   const navigate = useNavigate();
   const toast = useToast();
+  const auth = useAuth();
   const queryClient = useQueryClient();
   const [confirmandoBaja, setConfirmandoBaja] = useState(false);
 
@@ -161,15 +163,19 @@ export function DetalleEstudiantePage() {
         <Button variant="secondary" type="button" onClick={volver}>
           ← Volver
         </Button>
-        <Link className="btn btn-secondary" to={ROUTES.editarEstudiante(id)}>
-          Editar
-        </Link>
-        <Link className="btn btn-primary" to={ROUTES.evaluacionPorId(id)}>
-          Evaluar con DSS
-        </Link>
-        <button className="btn btn-secondary" type="button" onClick={() => setConfirmandoBaja(true)}>
-          Eliminar
-        </button>
+        {auth.puedeEditar && (
+          <>
+            <Link className="btn btn-secondary" to={ROUTES.editarEstudiante(id)}>
+              Editar
+            </Link>
+            <Link className="btn btn-primary" to={ROUTES.evaluacionPorId(id)}>
+              Evaluar con DSS
+            </Link>
+            <button className="btn btn-secondary" type="button" onClick={() => setConfirmandoBaja(true)}>
+              Eliminar
+            </button>
+          </>
+        )}
       </div>
 
       <div className="cols-2">

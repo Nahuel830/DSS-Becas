@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../components/Button";
 import { ApiError } from "../services/api/client";
 import { Card } from "../components/Card";
@@ -8,21 +9,30 @@ import { EmptyState } from "../components/EmptyState";
 import { Modal } from "../components/Modal";
 import { PageHeader } from "../components/PageHeader";
 import { Spinner } from "../components/Spinner";
+import { ROUTES } from "../routing/routes";
 import { usuariosApi } from "../services/api/usuarios";
 import type { UsuarioRow } from "../services/api/types";
+import { useAuth } from "../state/AuthContext";
 import { useDebounce } from "../state/useDebounce";
+import { formatFechaHora } from "../utils/format";
 import { useToast } from "../state/ToastContext";
+import { formatFecha } from "../utils/format";
 
 const ROLES = ["Administrador", "Evaluador", "Consulta"];
 const CORREO_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const USUARIO_RE = /^[a-z0-9._-]{3,30}$/;
 
-/** Administración de usuarios (#8). Sin login/JWT: siguiente fase. */
+type FormUsuario = Partial<UsuarioRow> & { password?: string; confirmar?: string };
+
+/** Administración de usuarios (solo Administrador por ruta). */
 export function AdministracionPage() {
   const [busqueda, setBusqueda] = useState("");
-  const [editando, setEditando] = useState<Partial<UsuarioRow> | null>(null);
+  const [editando, setEditando] = useState<FormUsuario | null>(null);
   const [eliminando, setEliminando] = useState<UsuarioRow | null>(null);
   const [errorForm, setErrorForm] = useState("");
   const toast = useToast();
+  const auth = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const q = useDebounce(busqueda);
 
@@ -31,28 +41,52 @@ export function AdministracionPage() {
   const invalida = () => queryClient.invalidateQueries({ queryKey: ["usuarios"] });
 
   const guardar = useMutation({
-    mutationFn: async (d: Partial<UsuarioRow>): Promise<void> => {
+    mutationFn: async (d: FormUsuario): Promise<{ esYo: boolean }> => {
+      if (!d.usuario?.trim() || !USUARIO_RE.test(d.usuario.trim())) {
+        throw new Error("Usuario inválido (minúsculas, 3–30, letras, números, punto y guion bajo).");
+      }
       if (!d.nombre?.trim()) throw new Error("El nombre es requerido.");
       if (!d.correo?.trim() || !CORREO_RE.test(d.correo.trim())) {
         throw new Error("Correo inválido.");
       }
       if (!d.rol) throw new Error("El rol es requerido.");
-      if (d.id_usuario) {
-        await usuariosApi.actualizar(d.id_usuario, {
-          nombre: d.nombre.trim(), correo: d.correo.trim(), rol: d.rol,
+      if (!d.id_usuario) {
+        if (!d.password || d.password.length < 8) throw new Error("La contraseña es obligatoria (mínimo 8 caracteres).");
+        if (d.password !== d.confirmar) throw new Error("La confirmación no coincide.");
+        await usuariosApi.crear({
+          usuario: d.usuario.trim(), nombre: d.nombre.trim(), correo: d.correo.trim(), rol: d.rol,
+          activo: true, password: d.password,
         });
-      } else {
-        await usuariosApi.crear({ nombre: d.nombre.trim(), correo: d.correo.trim(), rol: d.rol, activo: true });
+        return { esYo: false };
       }
+      if (d.password && d.password.length < 8) throw new Error("La nueva contraseña debe tener mínimo 8 caracteres.");
+      if (d.password && d.password !== d.confirmar) throw new Error("La confirmación no coincide.");
+      const original = (lista.data ?? []).find((u) => u.id_usuario === d.id_usuario);
+      const meToqueSesion =
+        d.id_usuario === auth.usuario?.id_usuario &&
+        (d.password !== undefined && d.password !== "" ? true : d.usuario !== original?.usuario);
+      const payload: Partial<UsuarioRow> & { password?: string } = {
+        usuario: d.usuario?.trim(), nombre: d.nombre?.trim(), correo: d.correo?.trim(), rol: d.rol,
+      };
+      if (d.password) payload.password = d.password;
+      await usuariosApi.actualizar(d.id_usuario, payload);
+      return { esYo: meToqueSesion };
     },
-    onSuccess: () => {
+    onSuccess: ({ esYo }) => {
       invalida();
       setEditando(null);
-      toast.exito("Usuario guardado.");
+      if (esYo) {
+        // Me cambié el usuario o la contraseña: mis sesiones se cerraron.
+        toast.advertencia("Tus datos cambiaron. Ingresá nuevamente.");
+        auth.salir();
+        navigate(ROUTES.login, { replace: true });
+      } else {
+        toast.exito("Usuario guardado.");
+      }
     },
     onError: (e: unknown) => {
       const msg = e instanceof Error ? e.message : "No se pudo guardar.";
-      if (msg.includes("Ya existe")) setErrorForm(msg);
+      if (msg.includes("Ya existe") || msg.includes("ya existe")) setErrorForm(msg);
       else if (e instanceof ApiError && e.detalles) {
         setErrorForm(Object.values(e.detalles).join(" "));
       } else toast.error(msg);
@@ -89,7 +123,7 @@ export function AdministracionPage() {
           type="button"
           onClick={() => {
             setErrorForm("");
-            setEditando({ nombre: "", correo: "", rol: "Consulta", activo: true });
+            setEditando({ usuario: "", nombre: "", correo: "", rol: "Consulta", activo: true, password: "", confirmar: "" });
           }}
         >
           + Nuevo usuario
@@ -97,7 +131,7 @@ export function AdministracionPage() {
         <input
           className="input toolbar-search"
           type="search"
-          placeholder="Buscar por nombre, correo o rol…"
+          placeholder="Buscar por usuario, nombre, correo o rol…"
           aria-label="Buscar usuario"
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
@@ -121,9 +155,11 @@ export function AdministracionPage() {
             <table className="data-table">
               <thead>
                 <tr>
+                  <th>Usuario</th>
                   <th>Nombre</th>
                   <th>Correo</th>
                   <th>Rol</th>
+                  <th>Último acceso</th>
                   <th>Estado</th>
                   <th>Acción</th>
                 </tr>
@@ -131,9 +167,11 @@ export function AdministracionPage() {
               <tbody>
                 {(lista.data ?? []).map((u) => (
                   <tr key={u.id_usuario}>
+                    <td>@{u.usuario}</td>
                     <td>{u.nombre}</td>
                     <td>{u.correo}</td>
                     <td>{u.rol}</td>
+                    <td>{u.ultimo_acceso ? formatFechaHora(u.ultimo_acceso) : "-"}</td>
                     <td>{u.activo === false ? "Inactivo" : "Activo"}</td>
                     <td>
                       <span className="row-actions">
@@ -169,6 +207,10 @@ export function AdministracionPage() {
             }}
           >
             <div className="field" style={{ marginBottom: 12 }}>
+              <label className="field-label">Usuario *</label>
+              <input className="input" value={editando.usuario ?? ""} onChange={(e) => setEditando({ ...editando, usuario: e.target.value })} placeholder="minúsculas, punto y guion bajo" />
+            </div>
+            <div className="field" style={{ marginBottom: 12 }}>
               <label className="field-label">Nombre *</label>
               <input className="input" value={editando.nombre ?? ""} onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} />
             </div>
@@ -183,6 +225,18 @@ export function AdministracionPage() {
                   <option key={r} value={r}>{r}</option>
                 ))}
               </select>
+            </div>
+            <div className="field" style={{ marginBottom: 12 }}>
+              <label className="field-label">
+                {editando.id_usuario ? "Nueva contraseña (vacío = no cambiar)" : "Contraseña *"}
+              </label>
+              <input className="input" type="password" autoComplete="new-password" value={editando.password ?? ""} onChange={(e) => setEditando({ ...editando, password: e.target.value })} />
+            </div>
+            <div className="field" style={{ marginBottom: 12 }}>
+              <label className="field-label">
+                {editando.id_usuario ? "Confirmar nueva" : "Confirmar contraseña *"}
+              </label>
+              <input className="input" type="password" autoComplete="new-password" value={editando.confirmar ?? ""} onChange={(e) => setEditando({ ...editando, confirmar: e.target.value })} />
             </div>
             {errorForm && <p className="error">{errorForm}</p>}
             <div className="form-actions">

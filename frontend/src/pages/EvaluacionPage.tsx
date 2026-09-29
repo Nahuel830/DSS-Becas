@@ -11,6 +11,7 @@ import { USE_MOCKS, ApiError } from "../services/api/client";
 import { fetchDashboard } from "../services/api/dashboard";
 import { evaluacionesApi } from "../services/api/evaluaciones";
 import { useToast } from "../state/ToastContext";
+import { useAuth } from "../state/AuthContext";
 import { PESOS_CRITERIOS, clasificarPuntaje, nombreCompleto } from "../utils/dss";
 import { formatPuntaje } from "../utils/format";
 
@@ -50,6 +51,7 @@ export function EvaluacionPage() {
   const [avisoElegibilidad, setAvisoElegibilidad] = useState<string[] | null>(null);
 
   const dash = useQuery({ queryKey: ["dashboard"], queryFn: fetchDashboard });
+  const auth = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
   const mutation = useMutation({
@@ -134,6 +136,12 @@ export function EvaluacionPage() {
   return (
     <div className="page">
       <PageHeader title="Evaluación DSS - Nueva evaluación" />
+      {!auth.puedeEditar ? (
+        <div>
+          <h1>Acceso denegado</h1>
+          <p className="muted">Tu rol no permite registrar evaluaciones.</p>
+        </div>
+      ) : (
       <div className="cols-2">
         <Card title="Criterios ponderados">
           <form onSubmit={calcular} noValidate>
@@ -206,6 +214,7 @@ export function EvaluacionPage() {
           </Card>
         </div>
       </div>
+      )}
     </div>
   );
 }

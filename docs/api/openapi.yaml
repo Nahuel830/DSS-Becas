@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: DSS-Becas API
   description: API para el Sistema de Soporte a Decisiones para la Asignación de Becas Universitarias
-  version: 1.1.0
+  version: 1.2.0
 servers:
   - url: http://localhost:3001/api
 paths:
@@ -765,6 +765,62 @@ paths:
       responses:
         '200':
           description: Estado actualizado
+  /auth/login:
+    post:
+      summary: Ingresar con usuario o correo + contraseña
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                usuario:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: JWT + datos del usuario (sin hash)
+        '401':
+          description: Usuario o contraseña incorrectos
+        '403':
+          description: Usuario desactivado
+        '429':
+          description: Demasiados intentos
+  /auth/me:
+    get:
+      summary: Sesión actual
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Usuario de la sesión
+        '401':
+          description: Sesión inválida
+  /auth/cambiar-password:
+    post:
+      summary: Cambiar la contraseña propia (invalida otras sesiones)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                actual:
+                  type: string
+                nueva:
+                  type: string
+      responses:
+        '200':
+          description: Token nuevo
+        '400':
+          description: La nueva no cumple el mínimo
+        '401':
+          description: La actual es incorrecta
   /dev/reset:
     post:
       summary: Vaciar y volver a sembrar (solo desarrollo)
@@ -774,7 +830,33 @@ paths:
         '403':
           description: No disponible en producción
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
+    Usuario:
+      type: object
+      properties:
+        id_usuario:
+          type: integer
+        usuario:
+          type: string
+          description: minúsculas, 3–30, letras, números, punto y guion bajo
+        nombre:
+          type: string
+        correo:
+          type: string
+        rol:
+          type: string
+          enum: [Administrador, Evaluador, Consulta]
+        activo:
+          type: boolean
+        debe_cambiar_password:
+          type: boolean
+        ultimo_acceso:
+          type: string
     Estudiante:
       type: object
       properties:

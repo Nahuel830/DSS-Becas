@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as asignaciones from "../controllers/asignaciones";
+import * as auth from "../controllers/auth";
 import * as catalogos from "../controllers/catalogos";
 import * as dashboard from "../controllers/dashboard";
 import * as dev from "../controllers/dev";
@@ -10,6 +11,7 @@ import * as reportes from "../controllers/reportes";
 import * as seguimiento from "../controllers/seguimiento";
 import * as usuarios from "../controllers/usuarios";
 import { ah } from "../middlewares/async";
+import { requireAuth, requireRol, soloLecturaParaConsulta } from "../middlewares/requireAuth";
 import { validate } from "../middlewares/validate";
 import {
   asignacionSchema,
@@ -26,12 +28,21 @@ import {
   seguimientoSchema,
   tipoBecaSchema,
 } from "../validators/schemas";
-import { usuarioSchema } from "../controllers/usuarios";
+import { usuarioActualizarSchema, usuarioCrearSchema } from "../controllers/usuarios";
 import { upload } from "../controllers/documentos";
 
 export const router = Router();
 
 router.get("/health", (_req, res) => res.json({ estado: "ok", fecha: new Date().toISOString() }));
+
+// Auth pública
+router.post("/auth/login", validate(auth.loginSchema), ah(auth.login));
+
+// Todo lo demás exige sesión; Consulta queda en solo lectura.
+router.use(requireAuth);
+router.use(soloLecturaParaConsulta);
+router.get("/auth/me", ah(auth.me));
+router.post("/auth/cambiar-password", validate(auth.cambiarPasswordSchema), ah(auth.cambiarPassword));
 
 // Estudiantes
 router.get("/estudiantes", ah(estudiantes.listar));
@@ -121,13 +132,14 @@ router.get("/estudiantes/:id/documentos", ah(documentos.listar));
 router.get("/documentos/:id/descarga", ah(documentos.descargar));
 router.delete("/documentos/:id", ah(documentos.eliminar));
 
-// Usuarios (sin login/JWT: queda para la siguiente fase, D28)
-router.get("/usuarios", ah(usuarios.listar));
-router.get("/usuarios/:id", ah(usuarios.obtener));
-router.post("/usuarios", validate(usuarioSchema), ah(usuarios.crear));
-router.put("/usuarios/:id", validate(usuarioSchema.partial()), ah(usuarios.actualizar));
-router.put("/usuarios/:id/estado", ah(usuarios.cambiarEstado));
-router.delete("/usuarios/:id", ah(usuarios.eliminar));
+// Usuarios (solo Administrador)
+const soloAdmin = requireRol("Administrador");
+router.get("/usuarios", soloAdmin, ah(usuarios.listar));
+router.get("/usuarios/:id", soloAdmin, ah(usuarios.obtener));
+router.post("/usuarios", soloAdmin, validate(usuarioCrearSchema), ah(usuarios.crear));
+router.put("/usuarios/:id", soloAdmin, validate(usuarioActualizarSchema), ah(usuarios.actualizar));
+router.put("/usuarios/:id/estado", soloAdmin, ah(usuarios.cambiarEstado));
+router.delete("/usuarios/:id", soloAdmin, ah(usuarios.eliminar));
 
-// Desarrollo
-router.post("/dev/reset", ah(dev.reset));
+// Desarrollo (solo Administrador)
+router.post("/dev/reset", soloAdmin, ah(dev.reset));

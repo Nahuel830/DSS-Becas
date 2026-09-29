@@ -175,12 +175,17 @@ model Seguimiento {
   @@index([id_asignacion])
 }
 
-// Documentada en el ER, sin autenticación implementada (ver D28).
+// Documentada en el ER. Login por usuario+contraseña (D57+).
 model Usuario {
-  id_usuario Int      @id @default(autoincrement())
-  nombre     String
-  correo     String   @unique
-  rol        String
-  activo     Boolean  @default(true)
-  createdAt  DateTime @default(now())
+  id_usuario             Int       @id @default(autoincrement())
+  usuario                String    @unique
+  nombre                 String
+  correo                 String    @unique
+  rol                    String
+  activo                 Boolean   @default(true)
+  password_hash          String?
+  token_version          Int       @default(0)
+  debe_cambiar_password  Boolean   @default(false)
+  ultimo_acceso          DateTime?
+  createdAt              DateTime  @default(now())
 }

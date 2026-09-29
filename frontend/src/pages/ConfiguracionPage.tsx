@@ -8,6 +8,7 @@ import { Modal } from "../components/Modal";
 import { PageHeader } from "../components/PageHeader";
 import { Spinner } from "../components/Spinner";
 import { USE_MOCKS, ApiError } from "../services/api/client";
+import { useAuth } from "../state/AuthContext";
 import {
   catalogosApi,
   type Carrera,
@@ -57,6 +58,7 @@ function CrudTab<T extends { id: number }>({ config }: { config: ConfigTab<T> })
   const [eliminando, setEliminando] = useState<T | null>(null);
   const [errorForm, setErrorForm] = useState("");
   const toast = useToast();
+  const auth = useAuth();
   const queryClient = useQueryClient();
 
   const lista = useQuery({ queryKey: [config.clave], queryFn: config.listar });
@@ -108,7 +110,7 @@ function CrudTab<T extends { id: number }>({ config }: { config: ConfigTab<T> })
   return (
     <div>
       <div className="toolbar">
-        {!USE_MOCKS && (
+        {!USE_MOCKS && auth.puedeEditar && (
           <Button type="button" onClick={() => { setErrorForm(""); setEditando(config.vacio); }}>
             + Nuevo
           </Button>
@@ -154,7 +156,7 @@ function CrudTab<T extends { id: number }>({ config }: { config: ConfigTab<T> })
                     {config.columnas.map((c) => (
                       <td key={c.titulo}>{c.valor(f)}</td>
                     ))}
-                    {!USE_MOCKS && (
+                    {!USE_MOCKS && auth.puedeEditar && (
                       <td>
                         <span className="row-actions">
                           <button className="link-btn" type="button" onClick={() => { setErrorForm(""); setEditando({ ...f }); }}>
@@ -212,6 +214,7 @@ function CrudTab<T extends { id: number }>({ config }: { config: ConfigTab<T> })
 export function ConfiguracionPage() {
   const [tab, setTab] = useState<Tab>("carreras");
   const toast = useToast();
+  const auth = useAuth();
   const queryClient = useQueryClient();
   const criteriosCache = useQuery({
     queryKey: ["cfg-criterios"],
@@ -255,7 +258,7 @@ export function ConfiguracionPage() {
         ))}
       </div>
 
-      {tab === "criterios" && !USE_MOCKS && (
+      {tab === "criterios" && !USE_MOCKS && auth.puedeEditar && (
         <div className="toolbar">
           <Button
             type="button"

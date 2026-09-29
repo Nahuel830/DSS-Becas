@@ -671,6 +671,30 @@ body {
   background: var(--bg);
 }
 
+.user-info {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+
+/* Login */
+.login-page {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.password-row {
+  display: flex;
+  gap: 8px;
+}
+
+.password-row .input {
+  flex: 1;
+}
+
 /* Toasts */
 .toasts {
   position: fixed;

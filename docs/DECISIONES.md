@@ -58,3 +58,7 @@ Registro de decisiones tomadas por falta de información o por conflicto entre f
 - **D54 Uploads tolerantes.** Carpeta creada antes de multer; si una subida falla, el estudiante queda guardado y solo hay aviso.
 - **D55 SQLite.** `journal_mode=WAL` + `busy_timeout=5000` al iniciar; bloqueo residual → 503 "Base de datos ocupada".
 - **D56 Errores con código.** 500 con `ERR-<base36>` en log y respuesta; `PrismaClientValidationError`→400, P2003→400.
+- **D57 Auth sin login previo.** JWT 8h con `token_version`; cada petición recarga el usuario (rol y estado aplican al instante).
+- **D58 Rate-limit en memoria** (5 fallos/10 min por usuario+IP); se pierde al reiniciar (suficiente en esta fase).
+- **D59 Sin HU-xx.** Los requisitos usan RF/RNF; la matriz QA vincula a RF-xx.
+- **D60 Sidebar oculta Administración** a no-admin (la ruta además exige el rol).

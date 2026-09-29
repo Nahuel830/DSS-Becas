@@ -21,6 +21,15 @@ export function formatFecha(fechaISO: string | null | undefined): string {
   return `${dia}/${mes}/${anio}`;
 }
 
+/** Fecha-hora ISO a dd/mm/aaaa hh:mm. */
+export function formatFechaHora(fechaISO: string | null | undefined): string {
+  if (!fechaISO) return "-";
+  const d = new Date(fechaISO);
+  if (Number.isNaN(d.getTime())) return fechaISO;
+  const dos = (n: number): string => String(n).padStart(2, "0");
+  return `${dos(d.getDate())}/${dos(d.getMonth() + 1)}/${d.getFullYear()} ${dos(d.getHours())}:${dos(d.getMinutes())}`;
+}
+
 /** Porcentaje con un decimal. */
 export function formatPorcentaje(valor: number | null | undefined): string {
   if (valor === null || valor === undefined || Number.isNaN(valor)) return "-";

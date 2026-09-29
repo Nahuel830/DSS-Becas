@@ -12,14 +12,14 @@ export const usuariosApi = {
         .filter(
           (u) =>
             !texto ||
-            `${u.nombre} ${u.correo} ${u.rol}`.toLowerCase().includes(texto),
+            `${u.usuario ?? ""} ${u.nombre} ${u.correo} ${u.rol}`.toLowerCase().includes(texto),
         );
     }
     const query = q.trim() ? `?q=${encodeURIComponent(q.trim())}` : "";
     return apiClient.get<UsuarioRow[]>(`/usuarios${query}`);
   },
 
-  crear: async (d: Omit<UsuarioRow, "id_usuario">): Promise<UsuarioRow> => {
+  crear: async (d: Omit<UsuarioRow, "id_usuario"> & { password?: string }): Promise<UsuarioRow> => {
     if (USE_MOCKS) {
       await simularRetardo();
       return db.create("usuarios", d);

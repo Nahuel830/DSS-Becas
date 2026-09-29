@@ -1,5 +1,7 @@
 /** Rutas 1:1 con prototypes/ + diagrama-navegacion.png (ver plan §3). */
 export const ROUTES = {
+  login: "/login",
+  cambiarPassword: "/cambiar-password",
   dashboard: "/dashboard",
   estudiantes: "/estudiantes",
   nuevoEstudiante: "/estudiantes/nuevo",

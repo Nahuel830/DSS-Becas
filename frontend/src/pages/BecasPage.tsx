@@ -14,6 +14,7 @@ import { catalogosApi } from "../services/api/catalogos";
 import { fetchDashboard } from "../services/api/dashboard";
 import { evaluacionesApi } from "../services/api/evaluaciones";
 import { useToast } from "../state/ToastContext";
+import { useAuth } from "../state/AuthContext";
 import { clasificarPuntaje, nombreCompleto } from "../utils/dss";
 import { exportarCSV, exportarPDF } from "../utils/export";
 import { formatMonedaBs, formatPuntaje } from "../utils/format";
@@ -25,6 +26,7 @@ export function BecasPage() {
   const [revocarId, setRevocarId] = useState<number | null>(null);
   const [decision, setDecision] = useState<{ id: number; estado: string } | null>(null);
   const toast = useToast();
+  const auth = useAuth();
   const queryClient = useQueryClient();
 
   const convs = useQuery({ queryKey: ["cfg-convocatorias"], queryFn: catalogosApi.convocatorias.listar });
@@ -152,12 +154,12 @@ export function BecasPage() {
             <option key={t.id} value={t.id}>{t.nombre}</option>
           ))}
         </select>
-        {!USE_MOCKS && paramsListos && (
+        {!USE_MOCKS && paramsListos && auth.puedeEditar && (
           <Button type="button" onClick={() => generar.mutate()} disabled={generar.isPending}>
             {generar.isPending ? "Generando…" : "Generar asignación"}
           </Button>
         )}
-        {!USE_MOCKS && (
+        {!USE_MOCKS && auth.puedeEditar && (
           <Button
             variant="secondary"
             type="button"
@@ -256,18 +258,22 @@ export function BecasPage() {
                     <td>{a.estado}</td>
                     <td>
                       <span className="row-actions">
-                        <button className="link-btn" type="button" onClick={() => decidir.mutate({ id: a.id, estado: "Aprobada" })}>
-                          Aprobar
-                        </button>
-                        <button className="link-btn" type="button" onClick={() => setDecision({ id: a.id, estado: "Rechazada" })}>
-                          Rechazar
-                        </button>
-                        <button className="link-btn" type="button" onClick={() => setDecision({ id: a.id, estado: "En observación" })}>
-                          Observar
-                        </button>
-                        <button className="link-btn danger" type="button" onClick={() => setRevocarId(a.id)}>
-                          Revocar
-                        </button>
+                        {auth.puedeEditar && (
+                          <>
+                            <button className="link-btn" type="button" onClick={() => decidir.mutate({ id: a.id, estado: "Aprobada" })}>
+                              Aprobar
+                            </button>
+                            <button className="link-btn" type="button" onClick={() => setDecision({ id: a.id, estado: "Rechazada" })}>
+                              Rechazar
+                            </button>
+                            <button className="link-btn" type="button" onClick={() => setDecision({ id: a.id, estado: "En observación" })}>
+                              Observar
+                            </button>
+                            <button className="link-btn danger" type="button" onClick={() => setRevocarId(a.id)}>
+                              Revocar
+                            </button>
+                          </>
+                        )}
                       </span>
                     </td>
                   </tr>

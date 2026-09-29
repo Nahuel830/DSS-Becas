@@ -16,6 +16,7 @@ import { documentosApi } from "../services/api/documentos";
 import { fetchDashboard } from "../services/api/dashboard";
 import { estudiantesApi } from "../services/api/estudiantes";
 import { useToast } from "../state/ToastContext";
+import { useAuth } from "../state/AuthContext";
 import { formatMonedaBs, parseDecimal } from "../utils/format";
 
 interface FormState {
@@ -146,6 +147,7 @@ export function NuevoEstudiantePage() {
   const id = Number(idEstudiante);
   const navigate = useNavigate();
   const toast = useToast();
+  const auth = useAuth();
   const queryClient = useQueryClient();
 
   const [form, setForm] = useState<FormState>(INICIAL);
@@ -331,6 +333,14 @@ export function NuevoEstudiantePage() {
 
   if (modoEdicion && (!Number.isInteger(id) || id <= 0)) {
     return <div className="page error">ID de estudiante inválido.</div>;
+  }
+  if (!auth.puedeEditar) {
+    return (
+      <div className="page">
+        <h1>Acceso denegado</h1>
+        <p className="muted">Tu rol no permite crear ni editar estudiantes.</p>
+      </div>
+    );
   }
   if (modoEdicion && original.isPending) {
     return (

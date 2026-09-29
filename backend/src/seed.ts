@@ -1,5 +1,6 @@
 // Seed inicial: mismos datos que frontend/src/services/api/mocks.ts.
 import { PrismaClient } from "@prisma/client";
+import bcryptjs from "bcryptjs";
 import { recomendar } from "./dss/criterios";
 
 const prisma = new PrismaClient();
@@ -171,12 +172,16 @@ export async function seedDatabase(): Promise<void> {
       data: { id_estudiante: null, tipo: "creacion", detalle: "Base de datos inicializada (seed)" },
     });
   }
-  for (const [nombre, correo, rol] of [
-    ["Admin Bienestar", "admin@universidad.bo", "Administrador"],
-    ["Evaluador DSS", "evaluador@universidad.bo", "Evaluador"],
-    ["Consulta Rectorado", "consulta@universidad.bo", "Consulta"],
-  ] as Array<[string, string, string]>) {
-    await prisma.usuario.upsert({ where: { correo }, update: {}, create: { nombre, correo, rol } });
+  for (const [usuario, nombre, correo, rol, password] of [
+    ["admin", "Admin Bienestar", "admin@universidad.bo", "Administrador", "Admin2026!"],
+    ["evaluador", "Evaluador DSS", "evaluador@universidad.bo", "Evaluador", "Evaluador2026!"],
+    ["consulta", "Consulta Rectorado", "consulta@universidad.bo", "Consulta", "Consulta2026!"],
+  ] as Array<[string, string, string, string, string]>) {
+    await prisma.usuario.upsert({
+      where: { correo },
+      update: {},
+      create: { usuario, nombre, correo, rol, password_hash: bcryptjs.hashSync(password, 10) },
+    });
   }
 }
 

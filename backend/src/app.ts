@@ -13,6 +13,7 @@ app.use(
       if (origenPermitido(origen)) cb(null, true);
       else cb(new Error("Origen no permitido por CORS."));
     },
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 app.use(express.json({ limit: "2mb" }));
