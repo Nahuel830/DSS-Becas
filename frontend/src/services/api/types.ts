@@ -76,6 +76,19 @@ export interface UsuarioRow {
   ultimo_acceso?: string | null;
 }
 
+/** Fila de GET /api/seguimiento/becarios: una por asignación Aprobada. */
+export interface BecarioSeguimiento {
+  id_asignacion: number;
+  estudiante: { id_estudiante: number; nombre: string; apellido: string; carrera: string };
+  convocatoria: { id: number; nombre: string };
+  tipoBeca: { id: number; nombre: string };
+  total_periodos: number;
+  ultimo_periodo: string | null;
+  ultimo_promedio: number | null;
+  estado: string;
+  sugerencia_suspension: boolean;
+}
+
 /** Seguimiento académico por periodo (GET /api/seguimiento). */
 export interface SeguimientoRow {
   id: number;

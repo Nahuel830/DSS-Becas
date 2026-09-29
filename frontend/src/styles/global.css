@@ -882,6 +882,16 @@ body {
   }
 }
 
+/* Fila expandida (historial dentro de la tabla) */
+.fila-expandida td {
+  background: var(--bg);
+  white-space: normal;
+}
+
+.fila-expandida h4 {
+  margin: 12px 0 8px;
+}
+
 /* Línea de tiempo (historial de eventos) */
 .timeline {
   list-style: none;
