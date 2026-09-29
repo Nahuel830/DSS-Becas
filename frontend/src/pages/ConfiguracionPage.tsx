@@ -7,7 +7,7 @@ import { EmptyState } from "../components/EmptyState";
 import { Modal } from "../components/Modal";
 import { PageHeader } from "../components/PageHeader";
 import { Spinner } from "../components/Spinner";
-import { USE_MOCKS } from "../services/api/client";
+import { USE_MOCKS, ApiError } from "../services/api/client";
 import {
   catalogosApi,
   type Carrera,
@@ -86,7 +86,9 @@ function CrudTab<T extends { id: number }>({ config }: { config: ConfigTab<T> })
     onError: (e: unknown) => {
       const msg = e instanceof Error ? e.message : "No se pudo guardar.";
       if (msg.startsWith("TOTAL_PESOS:")) setErrorForm(msg.replace("TOTAL_PESOS:", ""));
-      else toast.error(msg);
+      else if (e instanceof ApiError && e.detalles) {
+        setErrorForm(Object.values(e.detalles).join(" "));
+      } else toast.error(msg);
     },
   });
 

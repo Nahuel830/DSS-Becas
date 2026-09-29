@@ -206,3 +206,74 @@ describe("API", () => {
     await request(app).delete(`/api/estudiantes/${creado.body.id_estudiante}`).expect(204);
   });
 });
+
+describe("guardado robusto (coma decimal, vacíos, únicos)", () => {
+  it("ejemplo del reporte: coma decimal y opcionales vacíos → 201", async () => {
+    const r = await request(app).post("/api/estudiantes").send({
+      nombre: "Caso",
+      apellido: "Coma",
+      ci: "",
+      correo: "",
+      genero: "",
+      telefono: "",
+      direccion: "",
+      ciudad: "",
+      carrera: "Derecho",
+      codigo_universitario: "",
+      facultad: "",
+      semestre: "",
+      promedio: 85,
+      materias_aprobadas: "",
+      materias_reprobadas: "",
+      anio_ingreso: "",
+      ingreso_familiar: "1499,99",
+      integrantes_hogar: "",
+      dependientes: "",
+      tipo_vivienda: "",
+      procedencia: "",
+      discapacidad: "",
+      situacion_laboral: "",
+      motivo: "",
+      tipo_beca_solicitada: "",
+      fecha_solicitud: "",
+    });
+    expect(r.status).toBe(201);
+    const leido = await request(app).get(`/api/estudiantes/${r.body.id_estudiante}`);
+    expect(leido.body.ingreso_familiar).toBeCloseTo(1499.99, 5);
+    expect(leido.body.ci).toBeNull();
+    expect(leido.body.correo).toBeNull();
+    await request(app).delete(`/api/estudiantes/${r.body.id_estudiante}`).expect(204);
+  });
+
+  it("dos estudiantes sin CI ni correo → 201 los dos", async () => {
+    const base = { nombre: "Sin", apellido: "CI", carrera: "Derecho", promedio: 80, ingreso_familiar: 1000 };
+    const a = await request(app).post("/api/estudiantes").send(base);
+    const b = await request(app).post("/api/estudiantes").send({ ...base, nombre: "Sin2" });
+    expect(a.status).toBe(201);
+    expect(b.status).toBe(201);
+    await request(app).delete(`/api/estudiantes/${a.body.id_estudiante}`).expect(204);
+    await request(app).delete(`/api/estudiantes/${b.body.id_estudiante}`).expect(204);
+  });
+
+  it("CI duplicado → 409", async () => {
+    const base = { nombre: "Dup", apellido: "CI", ci: "6000002", carrera: "Derecho", promedio: 80, ingreso_familiar: 1000 };
+    const a = await request(app).post("/api/estudiantes").send(base);
+    expect(a.status).toBe(201);
+    const dup = await request(app).post("/api/estudiantes").send({ ...base, nombre: "Otro" });
+    expect(dup.status).toBe(409);
+    expect(String(dup.body.error)).toContain("CI");
+    await request(app).delete(`/api/estudiantes/${a.body.id_estudiante}`).expect(204);
+  });
+
+  it('"1.499,99" se guarda como 1499.99', async () => {
+    const r = await request(app).post("/api/estudiantes").send({
+      nombre: "Miles", apellido: "Coma", ci: "6000003", carrera: "Derecho",
+      promedio: "85,5", ingreso_familiar: "1.499,99",
+    });
+    expect(r.status).toBe(201);
+    const leido = await request(app).get(`/api/estudiantes/${r.body.id_estudiante}`);
+    expect(leido.body.ingreso_familiar).toBeCloseTo(1499.99, 5);
+    expect(leido.body.promedio).toBeCloseTo(85.5, 5);
+    await request(app).delete(`/api/estudiantes/${r.body.id_estudiante}`).expect(204);
+  });
+});

@@ -7,6 +7,7 @@ export default defineConfig({
     // 0.0.0.0: accesible desde otras PCs de la red local (ver README).
     host: true,
     port: 5173,
+    allowedHosts: [".loca.lt", ".trycloudflare.com"],
     proxy: {
       // /api relativo: el frontend llama al backend por el mismo host/puerto.
       "/api": { target: "http://localhost:3001", changeOrigin: true },

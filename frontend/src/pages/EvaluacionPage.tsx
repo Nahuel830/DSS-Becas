@@ -7,7 +7,7 @@ import { FormField } from "../components/FormField";
 import { PageHeader } from "../components/PageHeader";
 import { UmbralLegend } from "../components/UmbralLegend";
 import { ROUTES } from "../routing/routes";
-import { USE_MOCKS } from "../services/api/client";
+import { USE_MOCKS, ApiError } from "../services/api/client";
 import { fetchDashboard } from "../services/api/dashboard";
 import { evaluacionesApi } from "../services/api/evaluaciones";
 import { useToast } from "../state/ToastContext";
@@ -124,7 +124,10 @@ export function EvaluacionPage() {
         queryClient.invalidateQueries({ queryKey: ["ranking"] });
         toast.exito("Evaluación registrada.");
       },
-      onError: () => setSinBackend(true),
+      onError: (e: unknown) => {
+        if (e instanceof ApiError) setError(e.message);
+        else setSinBackend(true);
+      },
     });
   };
 

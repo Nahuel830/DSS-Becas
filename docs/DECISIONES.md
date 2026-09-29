@@ -52,3 +52,9 @@ Registro de decisiones tomadas por falta de información o por conflicto entre f
 - **D47 Sin placeholders.** `PlaceholderPage.tsx` eliminado; toda ruta tiene página real.
 - **D48 Contraste final.** `--gold:#8a6d00` (4.92:1), `--muted`/`--gray-badge:#5a6975` (5.22:1), manteniendo el tono del diseño.
 - **D49 Acceso LAN.** `VITE_API_URL=/api` relativo + proxy de Vite a `localhost:3001` (funciona desde cualquier IP sin recompilar); Vite y Express escuchan en `0.0.0.0`; CORS acepta `localhost`, `127.0.0.1`, `192.168.*.*` y `10.*.*.*` cuando `CORS_LAN=true` (defecto en desarrollo, apagado en producción). `client.ts` y las descargas (documentos, CSV) ya concatenan sobre la base, así que funcionan con la ruta relativa.
+- **D51 Causa del 500 al guardar.** Cadena probable: coma decimal (`Number("1499,99")=NaN`, `""` en únicos que chocan en P2002, carpeta `uploads/<id>` inexistente (multer ENOENT), SQLite bloqueado con Studio abierto y Prisma desincronizado. Se blindaron todas: coma en frontend+zod, `""`→`undefined`, `mkdirSync` antes de multer, WAL+`busy_timeout`, `prisma generate`/migraciones al día.
+- **D52 Coma decimal en ambos lados.** `parseDecimal` (frontend) y `aDecimal` (zod): `"1.499,99"`→`1499.99`; inválido → 400, nunca NaN a Prisma.
+- **D53 Nuevas columnas Estudiante.** `tipo_beca_solicitada` y `fecha_solicitud` (`String?`, migración) en vez de descartar lo del formulario.
+- **D54 Uploads tolerantes.** Carpeta creada antes de multer; si una subida falla, el estudiante queda guardado y solo hay aviso.
+- **D55 SQLite.** `journal_mode=WAL` + `busy_timeout=5000` al iniciar; bloqueo residual → 503 "Base de datos ocupada".
+- **D56 Errores con código.** 500 con `ERR-<base36>` en log y respuesta; `PrismaClientValidationError`→400, P2003→400.

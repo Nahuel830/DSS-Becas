@@ -39,6 +39,8 @@ model Estudiante {
   discapacidad         String?
   situacion_laboral    String?
   motivo               String?
+  tipo_beca_solicitada String?
+  fecha_solicitud      String?
   evaluaciones         Evaluacion[]
   resultados           Resultado[]
   becas                Beca[]

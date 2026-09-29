@@ -1,6 +1,7 @@
 import os from "os";
 import { app } from "./app";
 import { env } from "./config/env";
+import { dbLista } from "./config/db";
 
 function ipsLocales(): string[] {
   const ips: string[] = [];
@@ -12,11 +13,16 @@ function ipsLocales(): string[] {
   return ips;
 }
 
-app.listen(env.PORT, "0.0.0.0", () => {
-  // eslint-disable-next-line no-console
-  console.log(`DSS-Becas API en http://localhost:${env.PORT}/api`);
-  for (const ip of ipsLocales()) {
+async function main(): Promise<void> {
+  await dbLista;
+  app.listen(env.PORT, "0.0.0.0", () => {
     // eslint-disable-next-line no-console
-    console.log(`DSS-Becas API en red local: http://${ip}:${env.PORT}/api (CORS_LAN=${env.CORS_LAN})`);
-  }
-});
+    console.log(`DSS-Becas API en http://localhost:${env.PORT}/api`);
+    for (const ip of ipsLocales()) {
+      // eslint-disable-next-line no-console
+      console.log(`DSS-Becas API en red local: http://${ip}:${env.PORT}/api (CORS_LAN=${env.CORS_LAN})`);
+    }
+  });
+}
+
+void main();

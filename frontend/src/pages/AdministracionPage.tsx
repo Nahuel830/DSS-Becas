@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Button } from "../components/Button";
+import { ApiError } from "../services/api/client";
 import { Card } from "../components/Card";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { EmptyState } from "../components/EmptyState";
@@ -52,7 +53,9 @@ export function AdministracionPage() {
     onError: (e: unknown) => {
       const msg = e instanceof Error ? e.message : "No se pudo guardar.";
       if (msg.includes("Ya existe")) setErrorForm(msg);
-      else toast.error(msg);
+      else if (e instanceof ApiError && e.detalles) {
+        setErrorForm(Object.values(e.detalles).join(" "));
+      } else toast.error(msg);
     },
   });
 

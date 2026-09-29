@@ -26,3 +26,15 @@ export function formatPorcentaje(valor: number | null | undefined): string {
   if (valor === null || valor === undefined || Number.isNaN(valor)) return "-";
   return `${valor.toFixed(1)} %`;
 }
+
+/**
+ * Decimal flexible: "1499,99" y "1.499,99" → 1499.99.
+ * "" → undefined; inválido → NaN (lo frena la validación).
+ */
+export function parseDecimal(v: string): number | undefined {
+  const t = v.trim();
+  if (t === "") return undefined;
+  const normalizado = t.includes(",") ? t.replace(/\./g, "").replace(",", ".") : t;
+  const n = Number(normalizado);
+  return Number.isFinite(n) ? n : NaN;
+}
