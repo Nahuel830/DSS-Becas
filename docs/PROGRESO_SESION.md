@@ -1,5 +1,11 @@
 # Progreso de sesión — cierre de módulos, login y permisos por rol
 
+## 2026-09-29 — Seguimiento por becario (rama `fix/seguimiento-becarios`)
+
+Seguimiento pasa a mostrar UNA FILA POR BECARIO aprobado: endpoint `GET /api/seguimiento/becarios`, fila expandible con historial y formulario "Registrar periodo", estado "Sin registros" si no tiene periodos.
+Archivos: backend (`controllers/seguimiento.ts`, `routes/index.ts`, `tests/qa/seguimiento-becarios.test.ts`), frontend (`services/api/types.ts`, `services/api/seguimiento.ts`, `pages/SeguimientoPage.tsx`, `styles/global.css`), docs (`openapi.yaml` v1.3.0, `backend/README.md`, `DECISIONES.md` D68).
+Pruebas en verde: backend 57/57, frontend 11/11 (typecheck + build incluidos).
+
 Fecha: 2026-09-29. Rama `fix/permisos-roles`. Base de datos intacta (30/28/3, verificado tras incidente D63).
 
 ## PARTE 1 — Bug de guardado: HECHA y commiteada (`8fbb067`)
