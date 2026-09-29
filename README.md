@@ -128,6 +128,20 @@ Ver la base: `cd backend && npm run db:studio`. Puertos: backend :3001, frontend
 
 ---
 
+## Acceso al sistema
+
+El sistema exige iniciar sesión en `/login` con usuario o correo + contraseña. Roles: Administrador (todo), Evaluador (todo excepto usuarios y restablecer datos), Consulta (solo lectura).
+
+Usuarios iniciales (cambiarlos tras el primer acceso):
+
+| Usuario | Contraseña | Rol |
+|---------|------------|-----|
+| admin | Admin2026! | Administrador |
+| evaluador | Evaluador2026! | Evaluador |
+| consulta | Consulta2026! | Consulta |
+
+---
+
 ## Acceso desde otra PC en la misma red
 
 1. En esta PC (la que corre los servidores), obtené tu IP: abrí PowerShell y ejecutá `ipconfig`. Buscá "Adaptador de LAN inalámbrica Wi-Fi" y anotá la "Dirección IPv4" (p. ej. `192.168.1.50`).
