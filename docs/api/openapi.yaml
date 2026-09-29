@@ -55,6 +55,8 @@ paths:
         '200':
           description: Página de estudiantes enriquecidos
     post:
+      security:
+        - bearerAuth: []
       summary: Registrar un estudiante
       requestBody:
         required: true
@@ -69,6 +71,8 @@ paths:
           description: Datos inválidos
         '409':
           description: CI, correo o código duplicado
+        '403':
+          description: Sin permiso para esta acción (rol)
   /estudiantes/{id}:
     get:
       summary: Obtener un estudiante con sus relaciones
@@ -84,6 +88,8 @@ paths:
         '404':
           description: No encontrado
     put:
+      security:
+        - bearerAuth: []
       summary: Actualizar un estudiante
       parameters:
         - in: path
@@ -103,6 +109,8 @@ paths:
         '404':
           description: No encontrado
     delete:
+      security:
+        - bearerAuth: []
       summary: Eliminar un estudiante (cascada)
       parameters:
         - in: path
@@ -115,6 +123,8 @@ paths:
           description: Eliminado
         '404':
           description: No encontrado
+        '403':
+          description: Sin permiso para esta acción (rol)
   /estudiantes/{id}/historial:
     get:
       summary: Historial de eventos del estudiante
@@ -134,6 +144,8 @@ paths:
         '200':
           description: Evaluaciones con estudiante
     post:
+      security:
+        - bearerAuth: []
       summary: Registrar una nueva evaluación (actualiza resultado y evento)
       requestBody:
         required: true
@@ -144,8 +156,12 @@ paths:
       responses:
         '201':
           description: Evaluación registrada
+        '403':
+          description: Sin permiso para esta acción (rol)
   /evaluaciones/calcular:
     post:
+      security:
+        - bearerAuth: []
       summary: Ejecutar el motor DSS con elegibilidad, sin guardar
       requestBody:
         required: true
@@ -164,12 +180,18 @@ paths:
       responses:
         '200':
           description: Puntajes, recomendación, elegible y motivos_no_elegible
+        '403':
+          description: Sin permiso para esta acción (rol)
   /evaluaciones/evaluar-todos:
     post:
+      security:
+        - bearerAuth: []
       summary: Evaluar pendientes con criterios derivados
       responses:
         '200':
           description: Cantidad evaluada
+        '403':
+          description: Sin permiso para esta acción (rol)
   /evaluaciones/{id}:
     get:
       summary: Obtener una evaluación
@@ -185,6 +207,8 @@ paths:
         '404':
           description: No encontrada
     put:
+      security:
+        - bearerAuth: []
       summary: Actualizar una evaluación
       parameters:
         - in: path
@@ -202,6 +226,8 @@ paths:
         '200':
           description: Evaluación actualizada
     delete:
+      security:
+        - bearerAuth: []
       summary: Eliminar una evaluación
       parameters:
         - in: path
@@ -212,6 +238,8 @@ paths:
       responses:
         '204':
           description: Eliminada
+        '403':
+          description: Sin permiso para esta acción (rol)
   /resultados/{id_estudiante}:
     get:
       summary: Obtener resultados de un estudiante
@@ -235,6 +263,8 @@ paths:
         '200':
           description: Becas con estudiante
     post:
+      security:
+        - bearerAuth: []
       summary: Asignar una beca
       requestBody:
         required: true
@@ -245,6 +275,8 @@ paths:
       responses:
         '201':
           description: Beca asignada
+        '403':
+          description: Sin permiso para esta acción (rol)
   /ranking:
     get:
       summary: Ranking con mejor puntaje por estudiante y desempates
@@ -273,12 +305,16 @@ paths:
         '200':
           description: Catálogo de carreras
     post:
+      security:
+        - bearerAuth: []
       summary: Crear carrera
       responses:
         '201':
           description: Carrera creada
         '409':
           description: Nombre duplicado
+        '403':
+          description: Sin permiso para esta acción (rol)
   /carreras/{id}:
     get:
       summary: Obtener carrera
@@ -294,6 +330,8 @@ paths:
         '404':
           description: No encontrada
     put:
+      security:
+        - bearerAuth: []
       summary: Actualizar carrera
       parameters:
         - in: path
@@ -305,6 +343,8 @@ paths:
         '200':
           description: Carrera actualizada
     delete:
+      security:
+        - bearerAuth: []
       summary: Eliminar carrera
       parameters:
         - in: path
@@ -315,6 +355,8 @@ paths:
       responses:
         '204':
           description: Eliminada
+        '403':
+          description: Sin permiso para esta acción (rol)
   /tipos-beca:
     get:
       summary: Listar tipos de beca
@@ -322,12 +364,16 @@ paths:
         '200':
           description: Catálogo de tipos de beca
     post:
+      security:
+        - bearerAuth: []
       summary: Crear tipo de beca
       responses:
         '201':
           description: Tipo creado
         '409':
           description: Nombre duplicado
+        '403':
+          description: Sin permiso para esta acción (rol)
   /tipos-beca/{id}:
     get:
       summary: Obtener tipo de beca
@@ -343,6 +389,8 @@ paths:
         '404':
           description: No encontrado
     put:
+      security:
+        - bearerAuth: []
       summary: Actualizar tipo de beca
       parameters:
         - in: path
@@ -354,6 +402,8 @@ paths:
         '200':
           description: Tipo actualizado
     delete:
+      security:
+        - bearerAuth: []
       summary: Eliminar tipo de beca (409 si tiene asignaciones)
       parameters:
         - in: path
@@ -366,6 +416,8 @@ paths:
           description: Eliminado
         '409':
           description: Tiene registros asociados
+        '403':
+          description: Sin permiso para esta acción (rol)
   /convocatorias:
     get:
       summary: Listar convocatorias
@@ -373,12 +425,16 @@ paths:
         '200':
           description: Catálogo de convocatorias
     post:
+      security:
+        - bearerAuth: []
       summary: Crear convocatoria (fin posterior a inicio)
       responses:
         '201':
           description: Convocatoria creada
         '400':
           description: Rango de fechas inválido
+        '403':
+          description: Sin permiso para esta acción (rol)
   /convocatorias/{id}:
     get:
       summary: Obtener convocatoria
@@ -394,6 +450,8 @@ paths:
         '404':
           description: No encontrada
     put:
+      security:
+        - bearerAuth: []
       summary: Actualizar convocatoria
       parameters:
         - in: path
@@ -405,6 +463,8 @@ paths:
         '200':
           description: Convocatoria actualizada
     delete:
+      security:
+        - bearerAuth: []
       summary: Eliminar convocatoria (409 si tiene asignaciones)
       parameters:
         - in: path
@@ -417,6 +477,8 @@ paths:
           description: Eliminada
         '409':
           description: Tiene registros asociados
+        '403':
+          description: Sin permiso para esta acción (rol)
   /criterios:
     get:
       summary: Listar criterios del DSS
@@ -424,12 +486,18 @@ paths:
         '200':
           description: Catálogo de criterios
     post:
+      security:
+        - bearerAuth: []
       summary: Crear criterio
       responses:
         '201':
           description: Criterio creado
+        '403':
+          description: Sin permiso para esta acción (rol)
   /criterios/pesos:
     put:
+      security:
+        - bearerAuth: []
       summary: Actualizar pesos en lote (la suma debe ser 100)
       requestBody:
         required: true
@@ -452,6 +520,8 @@ paths:
           description: Pesos actualizados
         '400':
           description: La suma debe ser 100 %
+        '403':
+          description: Sin permiso para esta acción (rol)
   /criterios/{id}:
     get:
       summary: Obtener criterio
@@ -467,6 +537,8 @@ paths:
         '404':
           description: No encontrado
     put:
+      security:
+        - bearerAuth: []
       summary: Actualizar criterio
       parameters:
         - in: path
@@ -478,6 +550,8 @@ paths:
         '200':
           description: Criterio actualizado
     delete:
+      security:
+        - bearerAuth: []
       summary: Eliminar criterio
       parameters:
         - in: path
@@ -488,6 +562,8 @@ paths:
       responses:
         '204':
           description: Eliminado
+        '403':
+          description: Sin permiso para esta acción (rol)
   /asignaciones:
     get:
       summary: Listar asignaciones
@@ -504,12 +580,18 @@ paths:
         '200':
           description: Asignaciones con relaciones
     post:
+      security:
+        - bearerAuth: []
       summary: Crear asignación
       responses:
         '201':
           description: Asignación creada
+        '403':
+          description: Sin permiso para esta acción (rol)
   /asignaciones/generar:
     post:
+      security:
+        - bearerAuth: []
       summary: Asignar top-N por cupos disponibles
       requestBody:
         required: true
@@ -525,6 +607,8 @@ paths:
       responses:
         '201':
           description: Asignaciones generadas
+        '403':
+          description: Sin permiso para esta acción (rol)
   /asignaciones/resumen:
     get:
       summary: Cupos y presupuesto (ocupados, disponibles, usado)
@@ -544,6 +628,8 @@ paths:
           description: Resumen de cupos y presupuesto
   /asignaciones/{id}:
     put:
+      security:
+        - bearerAuth: []
       summary: Decisión del evaluador (rechazar/observar exige observaciones)
       parameters:
         - in: path
@@ -568,6 +654,8 @@ paths:
         '400':
           description: Faltan observaciones
     delete:
+      security:
+        - bearerAuth: []
       summary: Revocar asignación
       parameters:
         - in: path
@@ -578,6 +666,8 @@ paths:
       responses:
         '204':
           description: Revocada
+        '403':
+          description: Sin permiso para esta acción (rol)
   /seguimiento:
     get:
       summary: Listar seguimiento (filtros convocatoria, estado, carrera)
@@ -598,6 +688,8 @@ paths:
         '200':
           description: Registros con asignación anidada
     post:
+      security:
+        - bearerAuth: []
       summary: Registrar periodo (estado calculado por regla)
       responses:
         '201':
@@ -606,6 +698,8 @@ paths:
           description: Datos inválidos
         '404':
           description: Asignación no encontrada
+        '403':
+          description: Sin permiso para esta acción (rol)
   /seguimiento/asignacion/{id}:
     get:
       summary: Historial por becario con sugerencia de suspensión
@@ -620,6 +714,8 @@ paths:
           description: Historial y sugerencia
   /seguimiento/{id}:
     put:
+      security:
+        - bearerAuth: []
       summary: Actualizar periodo
       parameters:
         - in: path
@@ -632,8 +728,12 @@ paths:
           description: Periodo actualizado
         '404':
           description: No encontrado
+        '403':
+          description: Sin permiso para esta acción (rol)
   /estudiantes/{id}/documentos:
     post:
+      security:
+        - bearerAuth: []
       summary: Subir archivo (PDF/JPG/PNG hasta 5 MB, campo "archivo")
       parameters:
         - in: path
@@ -671,6 +771,8 @@ paths:
           description: Archivo
   /documentos/{id}:
     delete:
+      security:
+        - bearerAuth: []
       summary: Eliminar documento
       parameters:
         - in: path
@@ -681,6 +783,8 @@ paths:
       responses:
         '204':
           description: Eliminado
+        '403':
+          description: Sin permiso para esta acción (rol)
   /reportes/resumen:
     get:
       summary: Indicadores, distribución y promedios
@@ -706,19 +810,29 @@ paths:
           description: Archivo adjunto asignaciones.csv
   /usuarios:
     get:
+      security:
+        - bearerAuth: []
       summary: Listar usuarios (búsqueda q)
       responses:
         '200':
           description: Usuarios
+        '403':
+          description: Sin permiso para esta acción (rol)
     post:
+      security:
+        - bearerAuth: []
       summary: Crear usuario (correo único)
       responses:
         '201':
           description: Usuario creado
         '409':
           description: Correo duplicado
+        '403':
+          description: Sin permiso para esta acción (rol)
   /usuarios/{id}:
     get:
+      security:
+        - bearerAuth: []
       summary: Obtener usuario
       parameters:
         - in: path
@@ -729,9 +843,13 @@ paths:
       responses:
         '200':
           description: Usuario
+        '403':
+          description: Sin permiso para esta acción (rol)
         '404':
           description: No encontrado
     put:
+      security:
+        - bearerAuth: []
       summary: Actualizar usuario
       parameters:
         - in: path
@@ -743,6 +861,8 @@ paths:
         '200':
           description: Usuario actualizado
     delete:
+      security:
+        - bearerAuth: []
       summary: Eliminar usuario
       parameters:
         - in: path
@@ -753,8 +873,12 @@ paths:
       responses:
         '204':
           description: Eliminado
+        '403':
+          description: Sin permiso para esta acción (rol)
   /usuarios/{id}/estado:
     put:
+      security:
+        - bearerAuth: []
       summary: Activar o desactivar usuario
       parameters:
         - in: path
@@ -765,8 +889,12 @@ paths:
       responses:
         '200':
           description: Estado actualizado
+        '403':
+          description: Sin permiso para esta acción (rol)
   /auth/login:
     post:
+      security:
+        - bearerAuth: []
       summary: Ingresar con usuario o correo + contraseña
       requestBody:
         required: true
@@ -800,6 +928,8 @@ paths:
           description: Sesión inválida
   /auth/cambiar-password:
     post:
+      security:
+        - bearerAuth: []
       summary: Cambiar la contraseña propia (invalida otras sesiones)
       security:
         - bearerAuth: []
@@ -821,8 +951,12 @@ paths:
           description: La nueva no cumple el mínimo
         '401':
           description: La actual es incorrecta
+        '403':
+          description: Sin permiso para esta acción (rol)
   /dev/reset:
     post:
+      security:
+        - bearerAuth: []
       summary: Vaciar y volver a sembrar (solo desarrollo)
       responses:
         '200':

@@ -8,7 +8,7 @@ import { PageHeader } from "../components/PageHeader";
 import { Spinner } from "../components/Spinner";
 import { seguimientoApi } from "../services/api/seguimiento";
 import { useToast } from "../state/ToastContext";
-import { useAuth } from "../state/AuthContext";
+import { usePermiso } from "../state/Permisos";
 import { formatFecha, formatPuntaje } from "../utils/format";
 
 /** Seguimiento académico de becarios (#6). */
@@ -21,7 +21,7 @@ export function SeguimientoPage() {
   const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
   const [observaciones, setObservaciones] = useState("");
   const toast = useToast();
-  const auth = useAuth();
+  const puedeRegistrar = usePermiso("seguimiento:editar");
   const queryClient = useQueryClient();
 
   const lista = useQuery({
@@ -158,7 +158,7 @@ export function SeguimientoPage() {
           {hist.data?.sugerencia_suspension && (
             <p className="error">Sugerencia: dos periodos en riesgo seguidos — evaluar "Suspendida".</p>
           )}
-          {auth.puedeEditar && (
+          {puedeRegistrar && (
           <form onSubmit={guardarPeriodo} noValidate>
             <h4>Registrar periodo</h4>
             <div className="form-grid">
@@ -185,7 +185,7 @@ export function SeguimientoPage() {
             </div>
           </form>
           )}
-          {!auth.puedeEditar && (
+          {!puedeRegistrar && (
             <Button variant="secondary" type="button" onClick={() => setVerHistorial(null)}>
               Cerrar
             </Button>

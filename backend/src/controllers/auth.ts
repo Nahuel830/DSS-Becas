@@ -1,6 +1,7 @@
 import bcryptjs from "bcryptjs";
 import type { Request, Response } from "express";
 import { firmarToken } from "../auth/jwt";
+import { permisosDe } from "../auth/permisos";
 import { prisma } from "../config/db";
 import { HttpError } from "../middlewares/errorHandler";
 import { z } from "zod";
@@ -89,7 +90,7 @@ export async function login(req: Request, res: Response): Promise<void> {
   void _h;
   res.json({
     token: firmarToken({ id_usuario: u.id_usuario, rol: u.rol, token_version }),
-    usuario: resto,
+    usuario: { ...resto, permisos: permisosDe(u.rol) },
   });
 }
 
@@ -100,7 +101,7 @@ export async function me(req: Request, res: Response): Promise<void> {
     select: SIN_HASH,
   });
   if (!u) throw new HttpError(401, "Su sesión expiró o sus datos cambiaron, ingrese nuevamente.");
-  res.json(u);
+  res.json({ ...u, permisos: permisosDe(u.rol) });
 }
 
 /** POST /api/auth/cambiar-password (cierra otras sesiones y devuelve token nuevo). */
@@ -121,6 +122,6 @@ export async function cambiarPassword(req: Request, res: Response): Promise<void
   const completo = await prisma.usuario.findUniqueOrThrow({ where: { id_usuario: id } });
   res.json({
     token: firmarToken({ id_usuario: id, rol: completo.rol, token_version: completo.token_version }),
-    usuario: actualizado,
+    usuario: { ...actualizado, permisos: permisosDe(actualizado.rol) },
   });
 }

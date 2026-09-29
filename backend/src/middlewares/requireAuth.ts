@@ -65,23 +65,3 @@ export function requireAuth(req: Request, _res: Response, next: NextFunction): v
     })
     .catch(next);
 }
-
-/** Exige uno de los roles indicados (se evalúa con el rol recargado). */
-export function requireRol(...roles: string[]) {
-  return (req: Request, _res: Response, next: NextFunction): void => {
-    if (!req.usuario || !roles.includes(req.usuario.rol)) {
-      next(new HttpError(403, "Su rol no permite esta acción."));
-      return;
-    }
-    next();
-  };
-}
-
-/** Rol Consulta: solo lectura (GET y descargas). */
-export function soloLecturaParaConsulta(req: Request, _res: Response, next: NextFunction): void {
-  if (req.usuario?.rol === "Consulta" && req.method !== "GET") {
-    next(new HttpError(403, "Su rol no permite esta acción."));
-    return;
-  }
-  next();
-}

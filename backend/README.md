@@ -24,7 +24,7 @@ Desde la raíz del repo: `npm run setup` (todo lo anterior) y `npm run dev` (bac
 
 ## Variables (`backend/.env`)
 
-`PORT=3001` · `DATABASE_URL="file:./dev.db"` · `CORS_ORIGIN=http://localhost:5173` · `JWT_SECRET` (reservado) · `UPLOAD_DIR=uploads`.
+`PORT=3001` · `DATABASE_URL="file:./dev.db"` · `CORS_ORIGIN=http://localhost:5173` · `JWT_SECRET` (clave obligatoria que firma los tokens de login; generar una aleatoria en producción) · `UPLOAD_DIR=uploads`.
 
 ## Endpoints principales
 

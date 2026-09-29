@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
 import { ROUTES } from "../routing/routes";
 import { useAuth } from "../state/AuthContext";
 import { CambiarPasswordPage } from "../pages/CambiarPasswordPage";
@@ -31,12 +31,34 @@ export function RequireRol({ roles }: { roles: string[] }) {
     return <Navigate to={ROUTES.login} replace />;
   }
   if (!roles.includes(auth.usuario.rol)) {
-    return (
-      <div className="page">
-        <h1>Acceso denegado</h1>
-        <p className="muted">Tu rol ({auth.usuario.rol}) no permite ver esta sección.</p>
-      </div>
-    );
+    return <AccesoDenegado />;
   }
   return <Outlet />;
+}
+
+/** Exige el permiso indicado (si no: "Acceso denegado" + volver al Dashboard). */
+export function RequirePermiso({ permiso }: { permiso: string | string[] }) {
+  const auth = useAuth();
+  const permisos = auth.usuario?.permisos ?? [];
+  const ok = Array.isArray(permiso) ? permiso.some((p) => permisos.includes(p)) : permisos.includes(permiso);
+  if (!auth.usuario) {
+    return <Navigate to={ROUTES.login} replace />;
+  }
+  if (!ok) {
+    return <AccesoDenegado />;
+  }
+  return <Outlet />;
+}
+
+function AccesoDenegado() {
+  const auth = useAuth();
+  return (
+    <div className="page">
+      <h1>Acceso denegado</h1>
+      <p className="muted">Tu rol ({auth.usuario?.rol}) no permite ver esta sección.</p>
+      <p>
+        <Link to={ROUTES.dashboard}>Volver al Dashboard</Link>
+      </p>
+    </div>
+  );
 }

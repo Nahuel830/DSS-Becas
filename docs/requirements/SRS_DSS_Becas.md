@@ -35,3 +35,19 @@
 - **HU-REP-01**: Como estratégico quiero un resumen por convocatoria (postulantes, aprobados, montos, distribución) con gráficos.
 - **HU-REP-02**: Como estratégico quiero descargar el ranking y las asignaciones en CSV e imprimir el reporte.
 - **HU-ADM-01**: Como administrador quiero gestionar usuarios (crear, editar, activar/desactivar, eliminar) con roles Administrador|Evaluador|Consulta.
+
+## Roles y permisos
+
+| Módulo | Administrador | Evaluador | Consulta |
+|--------|---------------|-----------|----------|
+| Dashboard | ver | ver | ver |
+| Estudiantes | crear, editar, eliminar, subir/borrar documentos | crear, editar, subir documentos | solo ver (lista y detalle) |
+| Evaluación DSS | evaluar, evaluar todos, editar/eliminar evaluaciones | evaluar y evaluar todos | oculto |
+| Becas/asignaciones | generar, aprobar, rechazar, en observación, revocar | aprobar, rechazar, en observación | solo ver |
+| Seguimiento | todo | registrar y editar periodos | solo ver |
+| Reportes | ver, CSV, imprimir | ver, CSV, imprimir | ver, CSV, imprimir |
+| Configuración | todo | oculto | oculto |
+| Administración | todo | oculto | oculto |
+| Restablecer datos | sí | no | no |
+
+Fuente de verdad: `backend/src/auth/permisos.ts`. Sin permiso → 403 "Su rol no permite esta acción".

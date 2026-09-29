@@ -62,3 +62,10 @@ Registro de decisiones tomadas por falta de información o por conflicto entre f
 - **D58 Rate-limit en memoria** (5 fallos/10 min por usuario+IP); se pierde al reiniciar (suficiente en esta fase).
 - **D59 Sin HU-xx.** Los requisitos usan RF/RNF; la matriz QA vincula a RF-xx.
 - **D60 Sidebar oculta Administración** a no-admin (la ruta además exige el rol).
+- **D61 Permisos en `backend/src/auth/permisos.ts`.** Mapa por rol (única fuente); `requirePermiso` en cada ruta; lecturas de catálogos con `catalogos:ver` para que los formularios funcionen sin ver Configuración; `GET /resultados/:id` implementado (estaba en openapi pero no en el backend).
+- **D62 Tests: sin imports estáticos del chain `src`.** Un `import { router }` en un test construye PrismaClient antes de fijar `DATABASE_URL` y apunta a `dev.db` (además contaminó 3 usuarios de prueba, ya eliminados; base verificada 30/28/3). Import dinámico dentro del test + rutas absolutas.
+- **D63 Incidente dev.db.** Los tests de permisos escribieron en la base real por D62; se eliminaron las 3 filas intrusas y se verificó el baseline. Lección registrada en D62.
+- **D64 Test de cobertura de permisos.** `requirePermiso` marca el middleware con `.permiso`; el test recorre `router.stack` y falla si alguna ruta no lo lleva (salvo `/health` y `/auth/*`).
+- **D65 Permisos mock duplicados.** El mock de login embebe el mapa para demo; en modo real manda el servidor (`/auth/me`, login).
+- **D66 `catalogos:ver` para Consulta.** Solo lectura para selects/filtros; la página Configuración sigue oculta y su escritura es solo Admin.
+- **D67 Dashboard sin gate propio.** Visible a toda sesión; cada dato que muestra ya lleva su permiso (`estudiantes:ver`, `evaluaciones:ver`, etc.).
