@@ -1,30 +1,48 @@
 import { Router } from "express";
 import * as asignaciones from "../controllers/asignaciones";
+import * as auth from "../controllers/auth";
 import * as catalogos from "../controllers/catalogos";
 import * as dashboard from "../controllers/dashboard";
 import * as dev from "../controllers/dev";
 import * as documentos from "../controllers/documentos";
 import * as estudiantes from "../controllers/estudiantes";
 import * as evaluaciones from "../controllers/evaluaciones";
+import * as reportes from "../controllers/reportes";
+import * as seguimiento from "../controllers/seguimiento";
+import * as usuarios from "../controllers/usuarios";
 import { ah } from "../middlewares/async";
+import { requireAuth, requireRol, soloLecturaParaConsulta } from "../middlewares/requireAuth";
 import { validate } from "../middlewares/validate";
 import {
   asignacionSchema,
   becaSchema,
   calcularSchema,
   carreraSchema,
+  convocatoriaParcialSchema,
   convocatoriaSchema,
   criterioSchema,
   estudianteSchema,
   evaluacionSchema,
   generarSchema,
+  pesosSchema,
+  seguimientoSchema,
   tipoBecaSchema,
 } from "../validators/schemas";
+import { usuarioActualizarSchema, usuarioCrearSchema } from "../controllers/usuarios";
 import { upload } from "../controllers/documentos";
 
 export const router = Router();
 
 router.get("/health", (_req, res) => res.json({ estado: "ok", fecha: new Date().toISOString() }));
+
+// Auth pública
+router.post("/auth/login", validate(auth.loginSchema), ah(auth.login));
+
+// Todo lo demás exige sesión; Consulta queda en solo lectura.
+router.use(requireAuth);
+router.use(soloLecturaParaConsulta);
+router.get("/auth/me", ah(auth.me));
+router.post("/auth/cambiar-password", validate(auth.cambiarPasswordSchema), ah(auth.cambiarPassword));
 
 // Estudiantes
 router.get("/estudiantes", ah(estudiantes.listar));
@@ -76,10 +94,11 @@ router.delete("/tipos-beca/:id", ah(catalogos.tiposBeca.eliminar));
 router.get("/convocatorias", ah(catalogos.convocatorias.listar));
 router.get("/convocatorias/:id", ah(catalogos.convocatorias.obtener));
 router.post("/convocatorias", validate(convocatoriaSchema), ah(catalogos.convocatorias.crear));
-router.put("/convocatorias/:id", validate(convocatoriaSchema.partial()), ah(catalogos.convocatorias.actualizar));
+router.put("/convocatorias/:id", validate(convocatoriaParcialSchema), ah(catalogos.convocatorias.actualizar));
 router.delete("/convocatorias/:id", ah(catalogos.convocatorias.eliminar));
 
 router.get("/criterios", ah(catalogos.criterios.listar));
+router.put("/criterios/pesos", validate(pesosSchema), ah(catalogos.actualizarPesos));
 router.get("/criterios/:id", ah(catalogos.criterios.obtener));
 router.post("/criterios", validate(criterioSchema), ah(catalogos.criterios.crear));
 router.put("/criterios/:id", validate(criterioSchema.partial()), ah(catalogos.criterios.actualizar));
@@ -96,11 +115,31 @@ router.post("/asignaciones", validate(asignacionSchema), ah(async (req, res) => 
 router.put("/asignaciones/:id", ah(asignaciones.actualizar));
 router.delete("/asignaciones/:id", ah(asignaciones.revocar));
 
+// Reportes
+router.get("/reportes/resumen", ah(reportes.resumen));
+router.get("/reportes/ranking.csv", ah(reportes.rankingCsv));
+router.get("/reportes/asignaciones.csv", ah(reportes.asignacionesCsv));
+
+// Seguimiento académico
+router.get("/seguimiento", ah(seguimiento.listar));
+router.get("/seguimiento/asignacion/:id", ah(seguimiento.porAsignacion));
+router.post("/seguimiento", validate(seguimientoSchema), ah(seguimiento.crear));
+router.put("/seguimiento/:id", validate(seguimientoSchema.partial()), ah(seguimiento.actualizar));
+
 // Documentos
 router.post("/estudiantes/:id/documentos", upload.single("archivo"), ah(documentos.subir));
 router.get("/estudiantes/:id/documentos", ah(documentos.listar));
 router.get("/documentos/:id/descarga", ah(documentos.descargar));
 router.delete("/documentos/:id", ah(documentos.eliminar));
 
-// Desarrollo
-router.post("/dev/reset", ah(dev.reset));
+// Usuarios (solo Administrador)
+const soloAdmin = requireRol("Administrador");
+router.get("/usuarios", soloAdmin, ah(usuarios.listar));
+router.get("/usuarios/:id", soloAdmin, ah(usuarios.obtener));
+router.post("/usuarios", soloAdmin, validate(usuarioCrearSchema), ah(usuarios.crear));
+router.put("/usuarios/:id", soloAdmin, validate(usuarioActualizarSchema), ah(usuarios.actualizar));
+router.put("/usuarios/:id/estado", soloAdmin, ah(usuarios.cambiarEstado));
+router.delete("/usuarios/:id", soloAdmin, ah(usuarios.eliminar));
+
+// Desarrollo (solo Administrador)
+router.post("/dev/reset", soloAdmin, ah(dev.reset));

@@ -95,11 +95,29 @@ export async function generar(req: Request, res: Response): Promise<void> {
   res.status(201).json({ generadas: creadas.length, asignaciones: creadas });
 }
 
-/** PUT /api/asignaciones/:id {estado} */
+/** PUT /api/asignaciones/:id {estado, observaciones?} (#2). */
 export async function actualizar(req: Request, res: Response): Promise<void> {
+  const estado = String(req.body.estado ?? "Aprobada");
+  const observaciones = req.body.observaciones as string | undefined;
+  // #2: rechazar u observar exige justificación de al menos 10 caracteres.
+  if (
+    (estado === "Rechazada" || estado === "En observación") &&
+    (!observaciones || observaciones.trim().length < 10)
+  ) {
+    throw new HttpError(400, "Se requieren observaciones (mínimo 10 caracteres).", {
+      observaciones: "Se requieren observaciones (mínimo 10 caracteres).",
+    });
+  }
   const a = await prisma.asignacion.update({
     where: { id: Number(req.params.id) },
-    data: { estado: String(req.body.estado ?? "Aprobada") },
+    data: { estado, ...(observaciones !== undefined ? { observaciones } : {}) },
+  });
+  await prisma.evento.create({
+    data: {
+      id_estudiante: a.id_estudiante,
+      tipo: "edicion",
+      detalle: `Decisión del evaluador: ${estado}${observaciones ? ` — ${observaciones}` : ""}`,
+    },
   });
   res.json(a);
 }

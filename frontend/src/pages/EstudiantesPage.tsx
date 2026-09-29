@@ -10,6 +10,7 @@ import { Spinner } from "../components/Spinner";
 import { ROUTES } from "../routing/routes";
 import { catalogosApi } from "../services/api/catalogos";
 import { estudiantesApi, type EstudianteListado } from "../services/api/estudiantes";
+import { useAuth } from "../state/AuthContext";
 import type { FiltrosEstudiantes } from "../services/api/types";
 import { useDebounce } from "../state/useDebounce";
 import { useToast } from "../state/ToastContext";
@@ -30,6 +31,7 @@ export function EstudiantesPage() {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const auth = useAuth();
   const queryClient = useQueryClient();
   const [eliminarId, setEliminarId] = useState<number | null>(null);
 
@@ -117,9 +119,11 @@ export function EstudiantesPage() {
     <div className="page">
       <PageHeader title="Gestión de estudiantes" />
       <div className="toolbar">
-        <Link className="btn btn-primary" to={ROUTES.nuevoEstudiante}>
-          + Nuevo estudiante
-        </Link>
+        {auth.puedeEditar && (
+          <Link className="btn btn-primary" to={ROUTES.nuevoEstudiante}>
+            + Nuevo estudiante
+          </Link>
+        )}
         <input
           className="input toolbar-search"
           type="search"
@@ -177,7 +181,7 @@ export function EstudiantesPage() {
           <EmptyState
             titulo="No hay estudiantes"
             detalle="Registrá el primero para empezar."
-            accion={<Link to={ROUTES.nuevoEstudiante}>+ Nuevo estudiante</Link>}
+            accion={auth.puedeEditar ? <Link to={ROUTES.nuevoEstudiante}>+ Nuevo estudiante</Link> : undefined}
           />
         )}
         {!isPending && !isError && total === 0 && (q || carrera || estado) && (
@@ -218,11 +222,15 @@ export function EstudiantesPage() {
                         <td onClick={(e) => e.stopPropagation()}>
                           <span className="row-actions">
                             <Link to={ROUTES.detalleEstudiante(id)}>Ver</Link>
-                            <Link to={ROUTES.editarEstudiante(id)}>Editar</Link>
-                            <Link to={ROUTES.evaluacionPorId(id)}>Evaluar</Link>
-                            <button className="link-btn danger" type="button" onClick={() => setEliminarId(id)}>
-                              Eliminar
-                            </button>
+                            {auth.puedeEditar && (
+                              <>
+                                <Link to={ROUTES.editarEstudiante(id)}>Editar</Link>
+                                <Link to={ROUTES.evaluacionPorId(id)}>Evaluar</Link>
+                                <button className="link-btn danger" type="button" onClick={() => setEliminarId(id)}>
+                                  Eliminar
+                                </button>
+                              </>
+                            )}
                           </span>
                         </td>
                       </tr>
@@ -241,11 +249,15 @@ export function EstudiantesPage() {
                     <span>Estado beca: {r.estado_beca} · Puntaje: {r.puntaje_final === null ? "-" : formatPuntaje(r.puntaje_final)}</span>
                     <span className="row-actions">
                       <Link to={ROUTES.detalleEstudiante(id)}>Ver</Link>
-                      <Link to={ROUTES.editarEstudiante(id)}>Editar</Link>
-                      <Link to={ROUTES.evaluacionPorId(id)}>Evaluar</Link>
-                      <button className="link-btn danger" type="button" onClick={() => setEliminarId(id)}>
-                        Eliminar
-                      </button>
+                      {auth.puedeEditar && (
+                        <>
+                          <Link to={ROUTES.editarEstudiante(id)}>Editar</Link>
+                          <Link to={ROUTES.evaluacionPorId(id)}>Evaluar</Link>
+                          <button className="link-btn danger" type="button" onClick={() => setEliminarId(id)}>
+                            Eliminar
+                          </button>
+                        </>
+                      )}
                     </span>
                   </div>
                 );

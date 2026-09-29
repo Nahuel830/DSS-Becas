@@ -62,5 +62,7 @@ export interface EstudianteExtendido extends Estudiante {
   discapacidad?: string;
   situacion_laboral?: string;
   motivo?: string;
+  tipo_beca_solicitada?: string;
+  fecha_solicitud?: string;
   documentos?: DocumentoAdjunto[];
 }

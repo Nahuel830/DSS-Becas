@@ -44,8 +44,21 @@ export function errorHandler(
       res.status(404).json({ error: "Registro no encontrado" });
       return;
     }
+    if (err.code === "P2003") {
+      res.status(400).json({ error: "Referencia inválida: el registro relacionado no existe." });
+      return;
+    }
+    if (err.code === "P2034" || /database is locked/i.test(err.message)) {
+      res.status(503).json({ error: "Base de datos ocupada, reintente en unos segundos." });
+      return;
+    }
   }
+  if (err instanceof Prisma.PrismaClientValidationError) {
+    res.status(400).json({ error: "Datos inválidos", detalles: { body: err.message.split("\n").slice(0, 3).join(" ") } });
+    return;
+  }
+  const codigo = `ERR-${Date.now().toString(36).toUpperCase()}`;
   // eslint-disable-next-line no-console
-  console.error(err);
-  res.status(500).json({ error: "Error interno del servidor" });
+  console.error(`[${codigo}]`, err);
+  res.status(500).json({ error: "Error interno del servidor", codigo });
 }

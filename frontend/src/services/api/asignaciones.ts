@@ -84,4 +84,13 @@ export const asignacionesApi = {
     }
     await apiClient.del<unknown>(`/asignaciones/${id}`);
   },
+
+  /** PUT /api/asignaciones/:id con decisión del evaluador (#2). */
+  decidir: async (id: number, estado: string, observaciones?: string): Promise<void> => {
+    if (USE_MOCKS) {
+      await simularRetardo();
+      return;
+    }
+    await apiClient.put<unknown>(`/asignaciones/${id}`, { estado, observaciones });
+  },
 };

@@ -5,13 +5,16 @@ import { Card } from "../components/Card";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { EmptyState } from "../components/EmptyState";
 import { KpiCard } from "../components/KpiCard";
+import { ObservacionDialog } from "../components/ObservacionDialog";
 import { PageHeader } from "../components/PageHeader";
 import { Spinner } from "../components/Spinner";
 import { USE_MOCKS } from "../services/api/client";
 import { asignacionesApi, type FilaRanking } from "../services/api/asignaciones";
 import { catalogosApi } from "../services/api/catalogos";
 import { fetchDashboard } from "../services/api/dashboard";
+import { evaluacionesApi } from "../services/api/evaluaciones";
 import { useToast } from "../state/ToastContext";
+import { useAuth } from "../state/AuthContext";
 import { clasificarPuntaje, nombreCompleto } from "../utils/dss";
 import { exportarCSV, exportarPDF } from "../utils/export";
 import { formatMonedaBs, formatPuntaje } from "../utils/format";
@@ -21,7 +24,9 @@ export function BecasPage() {
   const [convocatoriaId, setConvocatoriaId] = useState("");
   const [tipoBecaId, setTipoBecaId] = useState("");
   const [revocarId, setRevocarId] = useState<number | null>(null);
+  const [decision, setDecision] = useState<{ id: number; estado: string } | null>(null);
   const toast = useToast();
+  const auth = useAuth();
   const queryClient = useQueryClient();
 
   const convs = useQuery({ queryKey: ["cfg-convocatorias"], queryFn: catalogosApi.convocatorias.listar });
@@ -80,19 +85,51 @@ export function BecasPage() {
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "No se pudo generar."),
   });
 
-  const revocar = useMutation({
-    mutationFn: (id: number) => asignacionesApi.revocar(id),
-    onSuccess: () => {
+  const evaluarPendientes = useMutation({
+    mutationFn: () => evaluacionesApi.evaluarTodos(),
+    onSuccess: (r) => {
       queryClient.invalidateQueries({ queryKey: ["ranking"] });
       queryClient.invalidateQueries({ queryKey: ["resumen-asig"] });
       queryClient.invalidateQueries({ queryKey: ["asignaciones"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["estudiantes"] });
+      queryClient.invalidateQueries({ queryKey: ["resultado"] });
+      toast.exito(`Evaluación masiva: ${r.evaluadas} pendientes evaluados.`);
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "No se pudo evaluar."),
+  });
+
+  const refrescarAsignaciones = () => {
+    queryClient.invalidateQueries({ queryKey: ["ranking"] });
+    queryClient.invalidateQueries({ queryKey: ["resumen-asig"] });
+    queryClient.invalidateQueries({ queryKey: ["asignaciones"] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+  };
+
+  const revocar = useMutation({
+    mutationFn: (id: number) => asignacionesApi.revocar(id),
+    onSuccess: () => {
+      refrescarAsignaciones();
       toast.exito("Asignación revocada.");
       setRevocarId(null);
     },
     onError: (e: unknown) => {
       toast.error(e instanceof Error ? e.message : "No se pudo revocar.");
       setRevocarId(null);
+    },
+  });
+
+  const decidir = useMutation({
+    mutationFn: ({ id, estado, observaciones }: { id: number; estado: string; observaciones?: string }) =>
+      asignacionesApi.decidir(id, estado, observaciones),
+    onSuccess: (_data, vars) => {
+      refrescarAsignaciones();
+      toast.exito(`Decisión registrada: ${vars.estado}.`);
+      setDecision(null);
+    },
+    onError: (e: unknown) => {
+      toast.error(e instanceof Error ? e.message : "No se pudo registrar la decisión.");
+      setDecision(null);
     },
   });
 
@@ -117,9 +154,19 @@ export function BecasPage() {
             <option key={t.id} value={t.id}>{t.nombre}</option>
           ))}
         </select>
-        {!USE_MOCKS && paramsListos && (
+        {!USE_MOCKS && paramsListos && auth.puedeEditar && (
           <Button type="button" onClick={() => generar.mutate()} disabled={generar.isPending}>
             {generar.isPending ? "Generando…" : "Generar asignación"}
+          </Button>
+        )}
+        {!USE_MOCKS && auth.puedeEditar && (
+          <Button
+            variant="secondary"
+            type="button"
+            onClick={() => evaluarPendientes.mutate()}
+            disabled={evaluarPendientes.isPending}
+          >
+            {evaluarPendientes.isPending ? "Evaluando…" : "Evaluar pendientes"}
           </Button>
         )}
         {filas.length > 0 && (
@@ -210,9 +257,24 @@ export function BecasPage() {
                     <td>{formatPuntaje(a.puntaje)}</td>
                     <td>{a.estado}</td>
                     <td>
-                      <button className="link-btn danger" type="button" onClick={() => setRevocarId(a.id)}>
-                        Revocar
-                      </button>
+                      <span className="row-actions">
+                        {auth.puedeEditar && (
+                          <>
+                            <button className="link-btn" type="button" onClick={() => decidir.mutate({ id: a.id, estado: "Aprobada" })}>
+                              Aprobar
+                            </button>
+                            <button className="link-btn" type="button" onClick={() => setDecision({ id: a.id, estado: "Rechazada" })}>
+                              Rechazar
+                            </button>
+                            <button className="link-btn" type="button" onClick={() => setDecision({ id: a.id, estado: "En observación" })}>
+                              Observar
+                            </button>
+                            <button className="link-btn danger" type="button" onClick={() => setRevocarId(a.id)}>
+                              Revocar
+                            </button>
+                          </>
+                        )}
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -230,6 +292,16 @@ export function BecasPage() {
           textoConfirmar="Revocar"
           onConfirmar={() => revocar.mutate(revocarId)}
           onCancelar={() => setRevocarId(null)}
+        />
+      )}
+
+      {decision !== null && (
+        <ObservacionDialog
+          titulo={`${decision.estado === "Aprobada" ? "Aprobar" : decision.estado === "Rechazada" ? "Rechazar" : "Dejar en observación"}`}
+          mensaje="La decisión quedará registrada en el historial del estudiante."
+          textoConfirmar="Guardar decisión"
+          onConfirmar={(obs) => decidir.mutate({ id: decision.id, estado: decision.estado, observaciones: obs })}
+          onCancelar={() => setDecision(null)}
         />
       )}
     </div>

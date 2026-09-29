@@ -12,8 +12,9 @@ import { PageHeader } from "../components/PageHeader";
 import { Spinner } from "../components/Spinner";
 import type { EstadoEstudiante } from "../models/domain";
 import { ROUTES } from "../routing/routes";
-import { apiClient } from "../services/api/client";
+import { ApiError, USE_MOCKS, apiClient } from "../services/api/client";
 import { fetchDashboard } from "../services/api/dashboard";
+import { documentosApi, type DocumentoRow } from "../services/api/documentos";
 import { estudiantesApi } from "../services/api/estudiantes";
 import { resultadosApi } from "../services/api/resultados";
 import { db } from "../services/api/db";
@@ -21,6 +22,7 @@ import { MOCK_CRITERIOS } from "../services/api/mocks";
 import type { EventoHistorial } from "../services/api/types";
 import { useToast } from "../state/ToastContext";
 import { clasificarPuntaje, codigoEstudiante, getEvaluacion, nombreCompleto } from "../utils/dss";
+import { useAuth } from "../state/AuthContext";
 import { formatFecha, formatMonedaBs, formatPuntaje } from "../utils/format";
 
 const ESTADOS_VALIDOS: EstadoEstudiante[] = ["Recomendado", "En revisión", "En riesgo", "Pendiente"];
@@ -44,6 +46,7 @@ export function DetalleEstudiantePage() {
   const valido = Number.isInteger(id) && id > 0;
   const navigate = useNavigate();
   const toast = useToast();
+  const auth = useAuth();
   const queryClient = useQueryClient();
   const [confirmandoBaja, setConfirmandoBaja] = useState(false);
 
@@ -58,11 +61,20 @@ export function DetalleEstudiantePage() {
     queryFn: () => apiClient.get<EventoHistorial[]>(`/estudiantes/${id}/historial`),
     enabled: valido && !!dash.data?.live,
   });
+  // En modo real los documentos vienen de la API (la lista del dashboard no los incluye).
+  const docs = useQuery({
+    queryKey: ["documentos", id],
+    queryFn: () => documentosApi.listar(id),
+    enabled: valido && !!dash.data?.live,
+  });
 
   const eliminar = useMutation({
     mutationFn: () => estudiantesApi.remove(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["estudiantes"] });
+      queryClient.invalidateQueries({ queryKey: ["resultado", id] });
+      queryClient.invalidateQueries({ queryKey: ["historial", id] });
       toast.exito("Estudiante eliminado.");
       navigate(ROUTES.estudiantes);
     },
@@ -78,11 +90,35 @@ export function DetalleEstudiantePage() {
   };
 
   if (!valido) return <div className="page error">ID de estudiante inválido.</div>;
-  if (dash.isPending || res.isPending || !dash.data || !res.data) {
+  // 404 en resultado = estudiante sin evaluar (no es fallo de conexión).
+  const sinResultado = res.error instanceof ApiError && res.error.status === 404;
+  if (dash.isPending || res.isPending) {
     return (
       <div className="page">
         <PageHeader title="Detalle del estudiante" />
         <Spinner texto="Cargando ficha…" />
+      </div>
+    );
+  }
+  if (dash.isError || (res.isError && !sinResultado) || !dash.data) {
+    return (
+      <div className="page">
+        <PageHeader title="Detalle del estudiante" />
+        <EmptyState
+          titulo="Sin conexión con el servidor"
+          detalle="No se pudo cargar la ficha. Verifica que el backend esté en ejecución."
+          accion={
+            <Button
+              type="button"
+              onClick={() => {
+                void dash.refetch();
+                void res.refetch();
+              }}
+            >
+              Reintentar
+            </Button>
+          }
+        />
       </div>
     );
   }
@@ -107,8 +143,12 @@ export function DetalleEstudiantePage() {
   // Criterios mock solo en modo demostración (sin endpoint en openapi.yaml).
   const criterios = dash.data.live ? undefined : MOCK_CRITERIOS[id];
   const historial: EventoHistorial[] = dash.data.live ? (hist.data ?? []) : db.eventosDe(id);
+  // En modo real los documentos vienen de la API (la entidad no los incluye).
+  const documentos: DocumentoRow[] | { nombre: string }[] = dash.data.live
+    ? (docs.data ?? [])
+    : (estudiante.documentos ?? []);
 
-  const etiquetado = res.data.data?.resultado;
+  const etiquetado = sinResultado ? undefined : res.data?.data?.resultado;
   const estado: EstadoEstudiante =
     etiquetado && (ESTADOS_VALIDOS as string[]).includes(etiquetado)
       ? (etiquetado as EstadoEstudiante)
@@ -123,15 +163,19 @@ export function DetalleEstudiantePage() {
         <Button variant="secondary" type="button" onClick={volver}>
           ← Volver
         </Button>
-        <Link className="btn btn-secondary" to={ROUTES.editarEstudiante(id)}>
-          Editar
-        </Link>
-        <Link className="btn btn-primary" to={ROUTES.evaluacionPorId(id)}>
-          Evaluar con DSS
-        </Link>
-        <button className="btn btn-secondary" type="button" onClick={() => setConfirmandoBaja(true)}>
-          Eliminar
-        </button>
+        {auth.puedeEditar && (
+          <>
+            <Link className="btn btn-secondary" to={ROUTES.editarEstudiante(id)}>
+              Editar
+            </Link>
+            <Link className="btn btn-primary" to={ROUTES.evaluacionPorId(id)}>
+              Evaluar con DSS
+            </Link>
+            <button className="btn btn-secondary" type="button" onClick={() => setConfirmandoBaja(true)}>
+              Eliminar
+            </button>
+          </>
+        )}
       </div>
 
       <div className="cols-2">
@@ -233,7 +277,7 @@ export function DetalleEstudiantePage() {
           <Dato etiqueta="Motivo" valor={texto(estudiante.motivo)} />
           <Dato
             etiqueta="Documentos"
-            valor={(estudiante.documentos ?? []).length === 0 ? "-" : (estudiante.documentos ?? []).map((d) => d.nombre).join(", ")}
+            valor={documentos.length === 0 ? "-" : documentos.map((d) => d.nombre).join(", ")}
           />
         </dl>
       </Card>

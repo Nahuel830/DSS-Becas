@@ -10,6 +10,7 @@ export async function reset(_req: Request, res: Response): Promise<void> {
     throw new HttpError(403, "No disponible en producción.");
   }
   await prisma.asignacion.deleteMany();
+  await prisma.seguimiento.deleteMany();
   await prisma.documento.deleteMany();
   await prisma.evento.deleteMany();
   await prisma.resultado.deleteMany();

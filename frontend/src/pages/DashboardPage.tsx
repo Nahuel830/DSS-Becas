@@ -47,7 +47,15 @@ export function DashboardPage() {
   }
 
   const porEstudiante = new Map(data.estudiantes.map((e) => [e.id_estudiante, e]));
-  const ranking: RankingRow[] = [...data.evaluaciones]
+  // #1: una fila por estudiante con su mejor puntaje.
+  const mejores = new Map<number, (typeof data.evaluaciones)[number]>();
+  for (const ev of data.evaluaciones) {
+    const actual = mejores.get(ev.id_estudiante ?? -1);
+    if (!actual || (ev.puntaje_final ?? 0) > (actual.puntaje_final ?? 0)) {
+      mejores.set(ev.id_estudiante ?? -1, ev);
+    }
+  }
+  const ranking: RankingRow[] = [...mejores.values()]
     .sort((a, b) => (b.puntaje_final ?? 0) - (a.puntaje_final ?? 0))
     .slice(0, 5)
     .map((ev, i) => {

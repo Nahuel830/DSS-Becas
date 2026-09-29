@@ -2,8 +2,8 @@
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ?? "http://localhost:3001/api";
 
-/** true → mocks locales con retardo; false → API real. */
-export const USE_MOCKS = (import.meta.env.VITE_USE_MOCKS as string | undefined) !== "false";
+/** true solo si VITE_USE_MOCKS === "true" explícitamente; por defecto API real. */
+export const USE_MOCKS = (import.meta.env.VITE_USE_MOCKS as string | undefined) === "true";
 
 /** Retardo simulado de red en modo mock (300 ms por defecto). */
 export function simularRetardo(ms = 300): Promise<void> {
@@ -28,11 +28,15 @@ interface CuerpoError {
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;
+  const cabeceras: Record<string, string> = { "Content-Type": "application/json", ...((init?.headers ?? {}) as Record<string, string>) };
   try {
-    res = await fetch(`${API_BASE_URL}${path}`, {
-      ...init,
-      headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-    });
+    const token = localStorage.getItem("dss-becas-token");
+    if (token) cabeceras.Authorization = `Bearer ${token}`;
+  } catch {
+    // Sin acceso a localStorage: se sigue sin token.
+  }
+  try {
+    res = await fetch(`${API_BASE_URL}${path}`, { ...init, headers: cabeceras });
   } catch {
     throw new Error("No se pudo conectar con el servidor. Verifica que el backend esté en ejecución.");
   }
@@ -42,6 +46,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       cuerpo = (await res.json()) as CuerpoError;
     } catch {
       // Respuesta no JSON: se usa el mensaje genérico.
+    }
+    if (res.status === 401 && typeof window !== "undefined") {
+      // Sesión inválida en cualquier pantalla: AuthContext redirige a /login.
+      window.dispatchEvent(new CustomEvent<string>("dss:sesion-expirada", { detail: cuerpo.error }));
     }
     throw new ApiError(res.status, cuerpo.error ?? `Error HTTP ${res.status}`, cuerpo.detalles);
   }
@@ -59,6 +67,8 @@ export const apiClient = {
   put: <T>(path: string, body: unknown) =>
     request<T>(path, { method: "PUT", body: JSON.stringify(body) }),
   del: <T>(path: string) => request<T>(path, { method: "DELETE" }),
+  /** GET /health del backend (verifica conexión real). */
+  health: () => request<{ estado: string }>("/health"),
 };
 
 export { API_BASE_URL };

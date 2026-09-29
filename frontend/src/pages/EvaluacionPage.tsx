@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Card } from "../components/Card";
@@ -7,9 +7,11 @@ import { FormField } from "../components/FormField";
 import { PageHeader } from "../components/PageHeader";
 import { UmbralLegend } from "../components/UmbralLegend";
 import { ROUTES } from "../routing/routes";
-import { USE_MOCKS } from "../services/api/client";
+import { USE_MOCKS, ApiError } from "../services/api/client";
 import { fetchDashboard } from "../services/api/dashboard";
 import { evaluacionesApi } from "../services/api/evaluaciones";
+import { useToast } from "../state/ToastContext";
+import { useAuth } from "../state/AuthContext";
 import { PESOS_CRITERIOS, clasificarPuntaje, nombreCompleto } from "../utils/dss";
 import { formatPuntaje } from "../utils/format";
 
@@ -46,13 +48,20 @@ export function EvaluacionPage() {
   const [error, setError] = useState("");
   const [registrada, setRegistrada] = useState(false);
   const [sinBackend, setSinBackend] = useState(false);
+  const [avisoElegibilidad, setAvisoElegibilidad] = useState<string[] | null>(null);
 
   const dash = useQuery({ queryKey: ["dashboard"], queryFn: fetchDashboard });
-  const mutation = useMutation({ mutationFn: evaluacionesApi.create });
+  const auth = useAuth();
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: evaluacionesApi.create,
+  });
 
   const setScore = (k: keyof Scores) => (ev: React.ChangeEvent<HTMLInputElement>) => {
     setRegistrada(false);
     setSinBackend(false);
+    setAvisoElegibilidad(null);
     setScores((s) => ({ ...s, [k]: ev.target.value }));
   };
 
@@ -65,11 +74,12 @@ export function EvaluacionPage() {
         ) / 100
       : null;
 
-  const calcular = (ev: React.FormEvent) => {
+  const calcular = async (ev: React.FormEvent) => {
     ev.preventDefault();
     setError("");
     setRegistrada(false);
     setSinBackend(false);
+    setAvisoElegibilidad(null);
     if (idEstudiante === "") {
       setError("Seleccioná un estudiante.");
       return;
@@ -80,24 +90,58 @@ export function EvaluacionPage() {
     }
     if (puntajeFinal === null) return;
     const [r, a, s, c, v] = nums as number[];
-    mutation.mutate(
-      {
-        id_estudiante: Number(idEstudiante),
-        fecha,
-        puntaje_academico: Math.round(((r + a) / 2) * 100) / 100,
-        puntaje_social: Math.round(((s + c + v) / 3) * 100) / 100,
-        puntaje_final: puntajeFinal,
+    // #3: en modo real el motor confirma puntajes y elegibilidad antes de guardar.
+    let payload = {
+      id_estudiante: Number(idEstudiante),
+      fecha,
+      puntaje_academico: Math.round(((r + a) / 2) * 100) / 100,
+      puntaje_social: Math.round(((s + c + v) / 3) * 100) / 100,
+      puntaje_final: puntajeFinal,
+    };
+    if (!USE_MOCKS) {
+      try {
+        const calc = await evaluacionesApi.calcular(Number(idEstudiante), {
+          rendimiento: r, asistencia: a, situacion: s, carga: c, vulnerable: v,
+        });
+        if (!calc.elegible) setAvisoElegibilidad(calc.motivos_no_elegible);
+        payload = {
+          id_estudiante: Number(idEstudiante),
+          fecha,
+          puntaje_academico: calc.puntaje_academico,
+          puntaje_social: calc.puntaje_social,
+          puntaje_final: calc.puntaje_final,
+        };
+      } catch {
+        setError("No se pudo calcular con el servidor.");
+        return;
+      }
+    }
+    mutation.mutate(payload, {
+      onSuccess: () => {
+        setRegistrada(true);
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["estudiantes"] });
+        queryClient.invalidateQueries({ queryKey: ["resultado"] });
+        queryClient.invalidateQueries({ queryKey: ["historial"] });
+        queryClient.invalidateQueries({ queryKey: ["ranking"] });
+        toast.exito("Evaluación registrada.");
       },
-      {
-        onSuccess: () => setRegistrada(true),
-        onError: () => setSinBackend(true),
+      onError: (e: unknown) => {
+        if (e instanceof ApiError) setError(e.message);
+        else setSinBackend(true);
       },
-    );
+    });
   };
 
   return (
     <div className="page">
       <PageHeader title="Evaluación DSS - Nueva evaluación" />
+      {!auth.puedeEditar ? (
+        <div>
+          <h1>Acceso denegado</h1>
+          <p className="muted">Tu rol no permite registrar evaluaciones.</p>
+        </div>
+      ) : (
       <div className="cols-2">
         <Card title="Criterios ponderados">
           <form onSubmit={calcular} noValidate>
@@ -134,6 +178,9 @@ export function EvaluacionPage() {
               </div>
             ))}
             {error && <p className="error">{error}</p>}
+            {avisoElegibilidad && avisoElegibilidad.length > 0 && (
+              <p className="error">No elegible: {avisoElegibilidad.join(" ")}</p>
+            )}
             <button className="btn btn-primary" type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? "Registrando…" : "Calcular puntaje DSS"}
             </button>
@@ -167,6 +214,7 @@ export function EvaluacionPage() {
           </Card>
         </div>
       </div>
+      )}
     </div>
   );
 }

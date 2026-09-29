@@ -18,8 +18,8 @@
 
 ## Pendientes (siguientes módulos)
 
-- Módulos Seguimiento, Reportes y Administración: solo placeholders (sin endpoint ni mock).
-- Login/roles: no implementado (D28).
+- Login/JWT y roles en rutas (D28): modelo `Usuario` y CRUD listos, sin autenticación.
+- Pantalla `/reportes` dedicada existe; RF-08 queda Cubierto vía ranking exportable + reportes.
 - Sin lint ni CI.
 
 ## a) Resumen del sistema

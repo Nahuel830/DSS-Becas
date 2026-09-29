@@ -22,7 +22,8 @@ Registro de decisiones tomadas por falta de información o por conflicto entre f
 - **D18 Sin GET /becas en el contrato.** `becasApi.list()` solo devuelve mock; en modo real (`VITE_USE_MOCKS=false`) propaga el error y la vista muestra Reintentar.
 - **D19 Persistencia en `services/api/db.ts`.** El encargo pide `mocks/db.ts`, pero AGENTS.md fija `services/api/` (D4): la db genérica localStorage (`getAll/getById/create/update/remove/reset/eventosDe`, clave `dss-becas-db`, siembra desde `mocks.ts`) vive ahí.
 - **D20 Menú en avatar PB.** El PNG solo muestra el avatar; se agregó menú mínimo con "Restablecer datos de prueba" + confirmación (función exigida sin ubicación definida).
-- **D21 Campos extendidos solo locales.** CI, género, contacto, facultad, semestre, hogar, procedencia, motivo, documentos, etc. se guardan en localStorage (`EstudianteExtendido`); a la API viaja solo el subconjunto del contrato.
+- **D21 SUPERADA — campos extendidos viajan a la API.** El schema Prisma ya incluye ci, género, contacto, facultad, semestre, hogar, procedencia, discapacidad, situación laboral, motivo, etc.: `create` envía el formulario completo (menos el id) y el test "viaja íntegro" lo verifica campo por campo. `EstudianteExtendido` sigue existiendo solo como tipo local.
+- **D50 Mocks solo con `VITE_USE_MOCKS=true` explícito.** Por defecto todo va a la API real; en modo demo el Header muestra banner fijo y ante fallo de `/health` se muestra "Sin conexión" (nunca caída silenciosa a mocks).
 - **D22 Timestamps vía eventos.** Sin campos de fecha en el contrato: creación/edición/baja/evaluación quedan en el log de eventos con fecha ISO.
 - **D23 `/evaluacion/:idEstudiante` provisional.** Reutiliza la vista actual con preselección; Prompt 3 la reemplazará por la evaluación dedicada.
 - **D24 Filtros/orden/paginación no están en el PNG** pero el encargo los exige: columnas y textos del PNG intactos; solo se agrega la barra de herramientas.
@@ -40,3 +41,24 @@ Registro de decisiones tomadas por falta de información o por conflicto entre f
 - **D36 Catálogos solo lectura en mock.** Crear/editar/eliminar catálogos requiere backend real.
 - **D37 Puerto frontend 5173** (antes 8080) para el arranque conjunto.
 - **D38 Bug `formatPuntaje`.** 74.0 se mostraba como "74.": corregido a siempre un decimal mínimo (detectado por test).
+- **D39 PUT `/api/criterios/pesos` en lote.** Los modales editan de a un criterio; el guardado masivo con suma 100 vive en este endpoint y en el botón "Guardar pesos en lote".
+- **D40 Elegibilidad configurable.** `PROMEDIO_MINIMO=51` y `TOPE_INGRESO_SOCIAL=4000` como constantes exportadas en `backend/src/dss/elegibilidad.ts`.
+- **D41 Ranking sin duplicados en espejo.** `mejorPorEstudiante()` en backend; `DashboardPage` agrupa igual en cliente hasta que el resumen del servidor sea la única fuente.
+- **D42 Seguimiento mock espejo.** La regla promedio→estado se duplica en `seguimiento.ts` del frontend con el mismo mínimo; los eventos mock no se registran.
+- **D43 Reportes server-side.** CSV con BOM y ";" + attachment; impresión con `@media print` sin sidebar.
+- **D44 Resumen por convocatoria parcial.** Sin vínculo estudiante-convocatoria en docs: postulantes/evaluados siempre globales; asignaciones y presupuesto sí filtran.
+- **D45 Usuarios mock en db local** (colección `usuarios` con migración suave); login/JWT queda para la siguiente fase.
+- **D46 OpenAPI v1.1.0.** Cubre todos los endpoints de `routes/index.ts` (servidor `http://localhost:3001/api`).
+- **D47 Sin placeholders.** `PlaceholderPage.tsx` eliminado; toda ruta tiene página real.
+- **D48 Contraste final.** `--gold:#8a6d00` (4.92:1), `--muted`/`--gray-badge:#5a6975` (5.22:1), manteniendo el tono del diseño.
+- **D49 Acceso LAN.** `VITE_API_URL=/api` relativo + proxy de Vite a `localhost:3001` (funciona desde cualquier IP sin recompilar); Vite y Express escuchan en `0.0.0.0`; CORS acepta `localhost`, `127.0.0.1`, `192.168.*.*` y `10.*.*.*` cuando `CORS_LAN=true` (defecto en desarrollo, apagado en producción). `client.ts` y las descargas (documentos, CSV) ya concatenan sobre la base, así que funcionan con la ruta relativa.
+- **D51 Causa del 500 al guardar.** Cadena probable: coma decimal (`Number("1499,99")=NaN`, `""` en únicos que chocan en P2002, carpeta `uploads/<id>` inexistente (multer ENOENT), SQLite bloqueado con Studio abierto y Prisma desincronizado. Se blindaron todas: coma en frontend+zod, `""`→`undefined`, `mkdirSync` antes de multer, WAL+`busy_timeout`, `prisma generate`/migraciones al día.
+- **D52 Coma decimal en ambos lados.** `parseDecimal` (frontend) y `aDecimal` (zod): `"1.499,99"`→`1499.99`; inválido → 400, nunca NaN a Prisma.
+- **D53 Nuevas columnas Estudiante.** `tipo_beca_solicitada` y `fecha_solicitud` (`String?`, migración) en vez de descartar lo del formulario.
+- **D54 Uploads tolerantes.** Carpeta creada antes de multer; si una subida falla, el estudiante queda guardado y solo hay aviso.
+- **D55 SQLite.** `journal_mode=WAL` + `busy_timeout=5000` al iniciar; bloqueo residual → 503 "Base de datos ocupada".
+- **D56 Errores con código.** 500 con `ERR-<base36>` en log y respuesta; `PrismaClientValidationError`→400, P2003→400.
+- **D57 Auth sin login previo.** JWT 8h con `token_version`; cada petición recarga el usuario (rol y estado aplican al instante).
+- **D58 Rate-limit en memoria** (5 fallos/10 min por usuario+IP); se pierde al reiniciar (suficiente en esta fase).
+- **D59 Sin HU-xx.** Los requisitos usan RF/RNF; la matriz QA vincula a RF-xx.
+- **D60 Sidebar oculta Administración** a no-admin (la ruta además exige el rol).

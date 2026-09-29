@@ -16,6 +16,8 @@ import { documentosApi } from "../services/api/documentos";
 import { fetchDashboard } from "../services/api/dashboard";
 import { estudiantesApi } from "../services/api/estudiantes";
 import { useToast } from "../state/ToastContext";
+import { useAuth } from "../state/AuthContext";
+import { formatMonedaBs, parseDecimal } from "../utils/format";
 
 interface FormState {
   nombre: string; apellido: string; ci: string; fechaNacimiento: string; genero: string;
@@ -100,14 +102,14 @@ function validar(
   ) e.correo = "Este correo ya está registrado.";
   if (!req(f.promedio)) e.promedio = "Requerido.";
   else {
-    const v = Number(f.promedio);
-    if (!Number.isFinite(v) || v < 0 || v > 100) e.promedio = "Debe ser un número entre 0 y 100.";
+    const v = parseDecimal(f.promedio);
+    if (v === undefined || !Number.isFinite(v) || v < 0 || v > 100) e.promedio = "Debe ser un número entre 0 y 100 (se acepta coma decimal).";
   }
   if (!enteroEnRango(f.semestre, 1, 10)) e.semestre = "Debe ser un entero entre 1 y 10.";
   if (!req(f.ingreso)) e.ingreso = "Requerido.";
   else {
-    const v = Number(f.ingreso);
-    if (!Number.isFinite(v) || v < 0) e.ingreso = "Debe ser un número mayor o igual a 0.";
+    const v = parseDecimal(f.ingreso);
+    if (v === undefined || !Number.isFinite(v) || v < 0) e.ingreso = "Debe ser un número mayor o igual a 0 (se acepta coma decimal).";
   }
   if (f.integrantesHogar.trim() && !enteroEnRango(f.integrantesHogar, 1, 30)) e.integrantesHogar = "Debe ser un entero mayor o igual a 1.";
   if (!enteroEnRango(f.dependientes, 0, 30)) e.dependientes = "Debe ser un entero mayor o igual a 0.";
@@ -132,13 +134,11 @@ function desdeEntidad(e: EstudianteExtendido): { form: FormState; documentos: Do
       integrantesHogar: txt(e.integrantes_hogar), dependientes: txt(e.dependientes),
       tipoVivienda: e.tipo_vivienda ?? "", procedencia: e.procedencia ?? "",
       discapacidad: e.discapacidad ?? "", situacionLaboral: e.situacion_laboral ?? "",
-      tipoBeca: "", motivo: e.motivo ?? "", fechaSolicitud: "",
+      tipoBeca: e.tipo_beca_solicitada ?? "", motivo: e.motivo ?? "", fechaSolicitud: e.fecha_solicitud ?? "",
     },
     documentos: e.documentos ?? [],
   };
 }
-
-const numOpcional = (v: string): number | undefined => (v.trim() === "" ? undefined : Number(v));
 
 /** nuevo-estudiante.png → /estudiantes/nuevo y /estudiantes/:id/editar. */
 export function NuevoEstudiantePage() {
@@ -147,6 +147,7 @@ export function NuevoEstudiantePage() {
   const id = Number(idEstudiante);
   const navigate = useNavigate();
   const toast = useToast();
+  const auth = useAuth();
   const queryClient = useQueryClient();
 
   const [form, setForm] = useState<FormState>(INICIAL);
@@ -196,8 +197,8 @@ export function NuevoEstudiantePage() {
       const payload: EstudianteExtendido = {
         nombre: form.nombre.trim(),
         apellido: form.apellido.trim(),
-        ci: form.ci.trim(),
-        fecha_nacimiento: form.fechaNacimiento,
+        ci: form.ci.trim() || undefined,
+        fecha_nacimiento: form.fechaNacimiento || undefined,
         genero: form.genero || undefined,
         telefono: form.telefono.trim() || undefined,
         correo: form.correo.trim() || undefined,
@@ -206,19 +207,21 @@ export function NuevoEstudiantePage() {
         carrera: form.carrera.trim(),
         codigo_universitario: form.codigoUniversitario.trim() || undefined,
         facultad: form.facultad.trim() || undefined,
-        semestre: numOpcional(form.semestre),
-        promedio: Number(form.promedio),
-        materias_aprobadas: numOpcional(form.materiasAprobadas),
-        materias_reprobadas: numOpcional(form.materiasReprobadas),
-        anio_ingreso: numOpcional(form.anioIngreso),
-        ingreso_familiar: Number(form.ingreso),
-        integrantes_hogar: numOpcional(form.integrantesHogar),
-        dependientes: numOpcional(form.dependientes),
+        semestre: parseDecimal(form.semestre),
+        promedio: parseDecimal(form.promedio) ?? NaN,
+        materias_aprobadas: parseDecimal(form.materiasAprobadas),
+        materias_reprobadas: parseDecimal(form.materiasReprobadas),
+        anio_ingreso: parseDecimal(form.anioIngreso),
+        ingreso_familiar: parseDecimal(form.ingreso) ?? NaN,
+        integrantes_hogar: parseDecimal(form.integrantesHogar),
+        dependientes: parseDecimal(form.dependientes),
         tipo_vivienda: form.tipoVivienda || undefined,
         procedencia: (form.procedencia || undefined) as "urbano" | "rural" | undefined,
         discapacidad: form.discapacidad || undefined,
         situacion_laboral: form.situacionLaboral || undefined,
         motivo: form.motivo.trim() || undefined,
+        tipo_beca_solicitada: form.tipoBeca || undefined,
+        fecha_solicitud: form.fechaSolicitud || undefined,
         documentos,
       };
       let destinoId: number;
@@ -231,28 +234,45 @@ export function NuevoEstudiantePage() {
         if (!destinoId) throw new Error("Sin id generado");
       }
       // Subida real de archivos pendientes (en mock ya viajan en el payload).
+      // Si una subida falla, el estudiante queda guardado: solo se avisa.
+      const fallos: string[] = [];
       if (archivos.length > 0) {
         let i = 0;
         for (const archivo of archivos) {
           setProgreso(Math.round((i / archivos.length) * 100));
-          const subido = await documentosApi.subir(destinoId, archivo, (pct) =>
-            setProgreso(Math.round(((i + pct / 100) / archivos.length) * 100)),
-          );
-          setDocumentos((d) => [...d, { nombre: subido.nombre, tamanio: subido.tamanio }]);
+          try {
+            const subido = await documentosApi.subir(destinoId, archivo, (pct) =>
+              setProgreso(Math.round(((i + pct / 100) / archivos.length) * 100)),
+            );
+            setDocumentos((d) => [...d, { nombre: subido.nombre, tamanio: subido.tamanio }]);
+          } catch {
+            fallos.push(archivo.name);
+          }
           i += 1;
         }
         setProgreso(100);
       }
+      if (fallos.length > 0) throw new Error(`AVISO_SUBIDA:${fallos.join(", ")}:${destinoId}`);
       return destinoId;
     },
     onSuccess: (nuevoId) => {
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["estudiante", nuevoId] });
       queryClient.invalidateQueries({ queryKey: ["estudiantes"] });
+      queryClient.invalidateQueries({ queryKey: ["historial", nuevoId] });
       toast.exito(modoEdicion ? "Estudiante actualizado." : "Estudiante registrado.");
       navigate(`/estudiantes/${nuevoId}`);
     },
     onError: (e: unknown) => {
+      if (e instanceof Error && e.message.startsWith("AVISO_SUBIDA:")) {
+        const [, nombres, idStr] = e.message.split(":");
+        const nuevoId = Number(idStr);
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["estudiantes"] });
+        toast.advertencia(`Estudiante guardado, pero falló la subida de: ${nombres}.`);
+        navigate(`/estudiantes/${nuevoId}`);
+        return;
+      }
       if (e instanceof ApiError && e.detalles) {
         const deServidor: Errores = {};
         for (const [campo, mensaje] of Object.entries(e.detalles)) {
@@ -313,6 +333,14 @@ export function NuevoEstudiantePage() {
 
   if (modoEdicion && (!Number.isInteger(id) || id <= 0)) {
     return <div className="page error">ID de estudiante inválido.</div>;
+  }
+  if (!auth.puedeEditar) {
+    return (
+      <div className="page">
+        <h1>Acceso denegado</h1>
+        <p className="muted">Tu rol no permite crear ni editar estudiantes.</p>
+      </div>
+    );
   }
   if (modoEdicion && original.isPending) {
     return (

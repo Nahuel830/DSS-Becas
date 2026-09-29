@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { calcularResumen } from "../src/services/api/dashboard";
-import { formatFecha, formatMonedaBs, formatPorcentaje, formatPuntaje } from "../src/utils/format";
+import { formatFecha, formatMonedaBs, formatPorcentaje, formatPuntaje, parseDecimal } from "../src/utils/format";
 
 describe("formatos", () => {
   it("puntaje DECIMAL(5,2)", () => {
@@ -33,5 +33,20 @@ describe("resumen del dashboard", () => {
       { puntaje_final: 58.2 },
     ]);
     expect(r).toEqual({ evaluados: 3, recomendados: 1, en_revision: 1, en_riesgo: 1 });
+  });
+});
+
+describe("parseDecimal", () => {
+  it("acepta coma decimal y miles con punto", () => {
+    expect(parseDecimal("1499,99")).toBeCloseTo(1499.99, 5);
+    expect(parseDecimal("1.499,99")).toBeCloseTo(1499.99, 5);
+    expect(parseDecimal("85")).toBe(85);
+    expect(parseDecimal("85,5")).toBeCloseTo(85.5, 5);
+  });
+
+  it("vacío es undefined e inválido es NaN", () => {
+    expect(parseDecimal("")).toBeUndefined();
+    expect(parseDecimal("   ")).toBeUndefined();
+    expect(parseDecimal("abc")).toSatisfy(Number.isNaN);
   });
 });

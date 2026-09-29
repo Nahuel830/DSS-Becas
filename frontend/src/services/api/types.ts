@@ -64,3 +64,30 @@ export interface EventoHistorial {
   tipo: string;
   detalle: string;
 }
+
+/** Usuario administrativo (sin login/JWT: siguiente fase, D28). */
+export interface UsuarioRow {
+  id_usuario: number;
+  usuario: string;
+  nombre: string;
+  correo: string;
+  rol: string;
+  activo?: boolean;
+  ultimo_acceso?: string | null;
+}
+
+/** Seguimiento académico por periodo (GET /api/seguimiento). */
+export interface SeguimientoRow {
+  id: number;
+  id_asignacion: number;
+  fecha: string;
+  periodo: string;
+  promedio_periodo: number;
+  estado: string;
+  observaciones?: string | null;
+  asignacion?: {
+    estudiante?: { nombre?: string; apellido?: string; carrera?: string };
+    convocatoria?: { nombre?: string };
+    tipoBeca?: { nombre?: string };
+  };
+}

@@ -1,4 +1,4 @@
-import { promises as fs } from "fs";
+import { promises as fs, mkdirSync } from "fs";
 import path from "path";
 import type { Request, Response } from "express";
 import multer from "multer";
@@ -12,7 +12,13 @@ const MAX_BYTES = 5 * 1024 * 1024;
 const storage = multer.diskStorage({
   destination: (req, _file, cb) => {
     const id = String((req.params as Record<string, string>).id ?? "tmp");
-    cb(null, path.join(env.UPLOAD_DIR, id));
+    try {
+      // La carpeta debe existir ANTES de que multer escriba (si no: ENOENT → 500).
+      mkdirSync(path.join(env.UPLOAD_DIR, id), { recursive: true });
+      cb(null, path.join(env.UPLOAD_DIR, id));
+    } catch (e: unknown) {
+      cb(e as Error, "");
+    }
   },
   filename: (_req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);

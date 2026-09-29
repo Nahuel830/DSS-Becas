@@ -89,28 +89,70 @@ Contiene los prototipos de interfaz diseñados para representar la interacción 
 
 ## Frontend
 
-Aplicación web (React 18 + TypeScript + Vite 5, React Router 6, TanStack Query 5, CSS plano en `global.css`). Sin backend todavía: lee `VITE_API_URL` y usa mocks con forma del contrato cuando no hay API.
+Aplicación web (React 18 + TypeScript + Vite 5, React Router 6, TanStack Query 5, recharts). Consume la API en `VITE_API_URL` (`http://localhost:3001/api`) o mocks locales con `VITE_USE_MOCKS=true`.
 
 ➡️ [frontend](./frontend) · Plan: [docs/frontend/plan_frontend.md](./docs/frontend/plan_frontend.md)
 
 **Requisitos:** Node 20+ y npm.
 
 ```bash
-cd frontend
-cp .env.example .env   # VITE_API_URL=http://localhost:3000
-npm install
-npm run dev            # http://localhost:8080
-npm run typecheck
-npm run build
+npm run setup            # desde la raíz: instala todo, migra y siembra
+npm run dev              # backend :3001 + frontend :5173
 ```
 
-**Estructura:** `src/components/` (incl. `layout/`) · `src/pages/` (una por ruta) · `src/services/api/` (cliente + tipos del contrato + `mocks.ts`) · `src/models/` · `src/routing/` · `src/state/` · `src/utils/` · `src/styles/`.
+O por partes: `cd frontend`, `cp .env.example .env`, `npm install`, `npm run dev` (`typecheck`, `build`, `test`).
 
-**Pantallas implementadas:** Dashboard (`/dashboard`), Gestión (`/estudiantes`), Nuevo (`/estudiantes/nuevo`), Detalle (`/estudiantes/:idEstudiante`), Evaluación (`/evaluaciones/nueva`) y esqueleto de Becas (`/becas`).
+**Estructura:** `src/components/` (incl. `layout/`) · `src/pages/` (una por ruta) · `src/services/api/` (cliente + tipos + `mocks.ts` + `db.ts`) · `src/models/` · `src/routing/` · `src/state/` · `src/utils/` · `src/styles/`.
 
-**Pendientes:** Seguimiento, Reportes y Administración son placeholders (sin endpoint en `openapi.yaml` ni mock); no hay backend, tests/lint/CI.
+**Pantallas:** Dashboard (`/dashboard`), Gestión (`/estudiantes`), Nuevo (`/estudiantes/nuevo`), Detalle (`/estudiantes/:idEstudiante`), Edición (`/estudiantes/:idEstudiante/editar`), Evaluación (`/evaluaciones/nueva`, `/evaluacion/:idEstudiante`), Becas (`/becas`), Seguimiento (`/seguimiento`), Reportes (`/reportes`), Configuración (`/configuracion`), Administración (`/administracion`).
 
 **Convenciones:** Conventional Commits (`feat(frontend): …`) y ramas `feature/`, `docs/`, `fix/` (detalle en `docs/frontend/plan_frontend.md` §5).
+
+---
+
+## Backend
+
+API REST (Node.js + Express + TypeScript + Prisma + Zod) con SQLite (`backend/prisma/dev.db`).
+
+➡️ [backend](./backend/README.md)
+
+```bash
+cd backend
+cp .env.example .env
+npm install
+npm run db:migrate && npm run db:seed
+npm run dev              # :3001 (`typecheck`, `build`, `test`)
+```
+
+Ver la base: `cd backend && npm run db:studio`. Puertos: backend :3001, frontend :5173.
+
+---
+
+## Acceso al sistema
+
+El sistema exige iniciar sesión en `/login` con usuario o correo + contraseña. Roles: Administrador (todo), Evaluador (todo excepto usuarios y restablecer datos), Consulta (solo lectura).
+
+Usuarios iniciales (cambiarlos tras el primer acceso):
+
+| Usuario | Contraseña | Rol |
+|---------|------------|-----|
+| admin | Admin2026! | Administrador |
+| evaluador | Evaluador2026! | Evaluador |
+| consulta | Consulta2026! | Consulta |
+
+---
+
+## Acceso desde otra PC en la misma red
+
+1. En esta PC (la que corre los servidores), obtené tu IP: abrí PowerShell y ejecutá `ipconfig`. Buscá "Adaptador de LAN inalámbrica Wi-Fi" y anotá la "Dirección IPv4" (p. ej. `192.168.1.50`).
+2. Asegurate de que backend (`npm run dev` en `backend/`) y frontend (`npm run dev` en `frontend/`) estén corriendo.
+3. Desde la otra PC, abrí en el navegador `http://IP:5173` (p. ej. `http://192.168.1.50:5173`). El frontend usa `/api` relativo y el proxy de Vite lo dirige al backend; el backend acepta orígenes de la red local (ver `CORS_LAN` en `backend/.env.example`).
+4. Si el navegador da `ERR_CONNECTION_REFUSED`, permití los puertos en el Firewall de Windows (PowerShell como administrador):
+
+```powershell
+New-NetFirewallRule -DisplayName "DSS-Becas frontend" -Direction Inbound -LocalPort 5173 -Protocol TCP -Action Allow
+New-NetFirewallRule -DisplayName "DSS-Becas backend" -Direction Inbound -LocalPort 3001 -Protocol TCP -Action Allow
+```
 
 ---
 

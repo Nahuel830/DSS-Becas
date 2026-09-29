@@ -7,7 +7,8 @@ import { EmptyState } from "../components/EmptyState";
 import { Modal } from "../components/Modal";
 import { PageHeader } from "../components/PageHeader";
 import { Spinner } from "../components/Spinner";
-import { USE_MOCKS } from "../services/api/client";
+import { USE_MOCKS, ApiError } from "../services/api/client";
+import { useAuth } from "../state/AuthContext";
 import {
   catalogosApi,
   type Carrera,
@@ -57,6 +58,7 @@ function CrudTab<T extends { id: number }>({ config }: { config: ConfigTab<T> })
   const [eliminando, setEliminando] = useState<T | null>(null);
   const [errorForm, setErrorForm] = useState("");
   const toast = useToast();
+  const auth = useAuth();
   const queryClient = useQueryClient();
 
   const lista = useQuery({ queryKey: [config.clave], queryFn: config.listar });
@@ -86,7 +88,9 @@ function CrudTab<T extends { id: number }>({ config }: { config: ConfigTab<T> })
     onError: (e: unknown) => {
       const msg = e instanceof Error ? e.message : "No se pudo guardar.";
       if (msg.startsWith("TOTAL_PESOS:")) setErrorForm(msg.replace("TOTAL_PESOS:", ""));
-      else toast.error(msg);
+      else if (e instanceof ApiError && e.detalles) {
+        setErrorForm(Object.values(e.detalles).join(" "));
+      } else toast.error(msg);
     },
   });
 
@@ -106,7 +110,7 @@ function CrudTab<T extends { id: number }>({ config }: { config: ConfigTab<T> })
   return (
     <div>
       <div className="toolbar">
-        {!USE_MOCKS && (
+        {!USE_MOCKS && auth.puedeEditar && (
           <Button type="button" onClick={() => { setErrorForm(""); setEditando(config.vacio); }}>
             + Nuevo
           </Button>
@@ -152,7 +156,7 @@ function CrudTab<T extends { id: number }>({ config }: { config: ConfigTab<T> })
                     {config.columnas.map((c) => (
                       <td key={c.titulo}>{c.valor(f)}</td>
                     ))}
-                    {!USE_MOCKS && (
+                    {!USE_MOCKS && auth.puedeEditar && (
                       <td>
                         <span className="row-actions">
                           <button className="link-btn" type="button" onClick={() => { setErrorForm(""); setEditando({ ...f }); }}>
@@ -209,6 +213,25 @@ function CrudTab<T extends { id: number }>({ config }: { config: ConfigTab<T> })
 /** Configuración de catálogos (requiere backend real para crear/editar/eliminar). */
 export function ConfiguracionPage() {
   const [tab, setTab] = useState<Tab>("carreras");
+  const toast = useToast();
+  const auth = useAuth();
+  const queryClient = useQueryClient();
+  const criteriosCache = useQuery({
+    queryKey: ["cfg-criterios"],
+    queryFn: catalogosApi.criterios.listar,
+    enabled: tab === "criterios",
+  });
+  const guardarPesos = useMutation({
+    mutationFn: () =>
+      catalogosApi.criterios.actualizarPesos(
+        (criteriosCache.data ?? []).map((c) => ({ id: c.id, peso: c.peso })),
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cfg-criterios"] });
+      toast.exito("Pesos guardados (suman 100 %).");
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "No se pudieron guardar los pesos."),
+  });
 
   return (
     <div className="page">
@@ -234,6 +257,21 @@ export function ConfiguracionPage() {
           </button>
         ))}
       </div>
+
+      {tab === "criterios" && !USE_MOCKS && auth.puedeEditar && (
+        <div className="toolbar">
+          <Button
+            type="button"
+            onClick={() => guardarPesos.mutate()}
+            disabled={guardarPesos.isPending || (criteriosCache.data ?? []).length === 0}
+          >
+            {guardarPesos.isPending ? "Guardando…" : "Guardar pesos en lote"}
+          </Button>
+          <span className="muted">
+            Suma actual: {(criteriosCache.data ?? []).reduce((s, c) => s + (c.peso ?? 0), 0)} %
+          </span>
+        </div>
+      )}
 
       {tab === "carreras" && (
         <CrudTab<Carrera>

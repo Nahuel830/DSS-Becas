@@ -39,6 +39,8 @@ model Estudiante {
   discapacidad         String?
   situacion_laboral    String?
   motivo               String?
+  tipo_beca_solicitada String?
+  fecha_solicitud      String?
   evaluaciones         Evaluacion[]
   resultados           Resultado[]
   becas                Beca[]
@@ -152,16 +154,38 @@ model Asignacion {
   tipoBeca         TipoBeca     @relation(fields: [id_tipo_beca], references: [id], onDelete: Restrict)
   puntaje          Float
   estado           String       @default("Aprobada")
+  observaciones    String?
   createdAt        DateTime     @default(now())
+  seguimientos     Seguimiento[]
 
   @@unique([id_estudiante, id_convocatoria, id_tipo_beca])
 }
 
-// Documentada en el ER, sin autenticación implementada (ver D28).
+model Seguimiento {
+  id               Int        @id @default(autoincrement())
+  id_asignacion    Int
+  asignacion       Asignacion @relation(fields: [id_asignacion], references: [id], onDelete: Cascade)
+  fecha            String
+  periodo          String
+  promedio_periodo Float
+  estado           String     @default("Al día")
+  observaciones    String?
+  createdAt        DateTime   @default(now())
+
+  @@index([id_asignacion])
+}
+
+// Documentada en el ER. Login por usuario+contraseña (D57+).
 model Usuario {
-  id_usuario Int      @id @default(autoincrement())
-  nombre     String
-  correo     String   @unique
-  rol        String
-  createdAt  DateTime @default(now())
+  id_usuario             Int       @id @default(autoincrement())
+  usuario                String    @unique
+  nombre                 String
+  correo                 String    @unique
+  rol                    String
+  activo                 Boolean   @default(true)
+  password_hash          String?
+  token_version          Int       @default(0)
+  debe_cambiar_password  Boolean   @default(false)
+  ultimo_acceso          DateTime?
+  createdAt              DateTime  @default(now())
 }

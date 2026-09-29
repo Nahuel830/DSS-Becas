@@ -17,10 +17,10 @@ Herramientas Utilizadas: Vitest, Supertest, Prisma Studio, Postman/Thunder Clien
 
 | ID Test | ID Historia | Descripción (Escenario) | Pasos | Resultado Esperado | Resultado Obtenido | Estado | Evidencia |
 |---------|-------------|-------------------------|-------|--------------------|--------------------|--------|-----------|
-| CP-17 | RF-07 (sin HU) | Rechazar evaluación sin observaciones debe bloquearse | 1. Crear estudiante, evaluación y asignación. 2. PUT `/api/asignaciones/:id` `{estado:"Rechazada"}` sin observaciones | 400 (observaciones obligatorias) | 200: no existe decisión del evaluador ni campo observaciones | ❌ Falla | Anexo 4 |
-| CP-15 | RF-06 (sin HU) | Promedio bajo debe dar "No elegible" | 1. POST `/api/evaluaciones/calcular` con criterios en 10 | Respuesta con elegibilidad negativa | Solo `recomendacion:"En riesgo"`; no hay filtros duros | ❌ Falla | Anexo 4 |
-| CP-13 | RF-03/04/05 (sin HU) | Pesos que suman 110 deben rechazarse en backend | 1. POST `/api/criterios` `{nombre, peso:110}` | 400 | 201: el backend no valida la suma (solo el frontend) | ❌ Falla | Anexo 4 |
-| CP-05 | RF-01 (sin HU) | Convocatoria con fin anterior al inicio | 1. POST `/api/convocatorias` `{inicio:"2025-09-01", fin:"2025-01-01"}` | 400 | 201: sin validación de rango de fechas | ❌ Falla | Anexo 4 |
+| CP-17 | RF-07 (sin HU) | Rechazar evaluación sin observaciones debe bloquearse | 1. Crear estudiante, evaluación y asignación. 2. PUT `/api/asignaciones/:id` `{estado:"Rechazada"}` sin observaciones | 400 (observaciones obligatorias) | ✅ 400 con detalle en `observaciones` (corregido en cierre) | ✅ Pasa | Anexo 4 |
+| CP-15 | RF-06 (sin HU) | Promedio bajo debe dar "No elegible" | 1. POST `/api/evaluaciones/calcular` con criterios en 10 | Respuesta con elegibilidad negativa | ✅ `elegible:false` + motivos + "No elegible" (corregido en cierre) | ✅ Pasa | Anexo 4 |
+| CP-13 | RF-03/04/05 (sin HU) | Pesos que suman 110 deben rechazarse en backend | 1. POST `/api/criterios` `{nombre, peso:110}` | 400 | ✅ 400 (corregido en cierre) | ✅ Pasa | Anexo 4 |
+| CP-05 | RF-01 (sin HU) | Convocatoria con fin anterior al inicio | 1. POST `/api/convocatorias` `{inicio:"2025-09-01", fin:"2025-01-01"}` | 400 | ✅ 400 con error en `fin` (corregido en cierre; evidencia del fallo original: `captura3_error_fechas.png`) | ✅ Pasa | Anexo 4 |
 | CP-18 | RF-08 (sin HU) | Dashboard con base vacía | 1. Vaciar tablas. 2. GET `/api/dashboard/resumen` | Ceros y listas vacías, sin NaN | `evaluados:0`, `ranking:[]`, todo finito | ✅ Pasa | Anexo 3 |
 
 ### Resto de casos
@@ -43,7 +43,7 @@ Herramientas Utilizadas: Vitest, Supertest, Prisma Studio, Postman/Thunder Clien
 | CP-19 | RF-08 | Totales vs base | GET resumen vs `count()` Prisma | Iguales | Iguales | ✅ | Anexo 3 (`captura3_dashboard.png`, `dashboard_resumen.json`) |
 | CP-20 | RNF-02 | POST válido | POST estudiante válido | 201 + id | 201 + id | ✅ | Anexo 4 (`ok_201.json`) |
 
-Resultado: 16 ✅ Pasa, 4 ❌ Falla. Salida completa en `docs/qa/evidencias/ejecucion_pruebas.txt`.
+Resultado: 20 ✅ Pasa, 0 ❌ Falla (cierre: los 4 fallos originales se corrigieron y verificaron). Salida completa en `docs/qa/evidencias/ejecucion_pruebas.txt` y `ejecucion_pruebas_v2.txt`.
 
 ## 3. Resumen de Defectos
 
@@ -75,9 +75,19 @@ Tablas Estudiante y Resultado en Prisma Studio: se observan 27+ filas con CI, co
 
 `/dashboard` con datos semilla: KPI 27/14/9/4, ranking top 5 con badges, 4 alertas y barras por estado. Casos CP-16/CP-18/CP-19 (existe duplicada `captura3_dashboard_duplicado.png`). JSON equivalente en `evidencias/dashboard_resumen.json`.
 
-### Anexo 4 — Respuestas API (CP-01, CP-09, CP-20 y fallos CP-05/CP-13/CP-15/CP-17)
+### Anexo 4 — Respuestas API (CP-01, CP-09, CP-20 y ex-fallos CP-05/CP-13/CP-15/CP-17)
 
-Sin capturas Thunder Client (pendientes de tomar: POST `{}` → 400 con `detalles` y POST válido → 201). Equivalentes JSON ya capturados: `error_400.json`, `error_404.json`, `error_409.json`, `ok_201.json`.
+![Thunder 400](evidencias/captura4_thunder_400.png)
+
+Thunder Client POST `/api/estudiantes` con cuerpo inválido: se observa el 400 con `detalles` por campo. Casos CP-01/CP-02/CP-03.
+
+![Thunder 201](evidencias/captura4_thunder_201.png)
+
+Thunder Client POST válido: se observa el 201 con el registro creado. Caso CP-20. JSON equivalentes en `error_400.json`, `error_404.json`, `error_409.json`, `ok_201.json`.
+
+![Fallo original de fechas (corregido)](evidencias/captura3_error_fechas.png)
+
+Evidencia histórica del fallo CP-05: Thunder Client POST `/api/convocatorias` con fin (`2025-01-01`) anterior al inicio (`2025-09-01`) devolvía **201 Created**. Tras la corrección devuelve 400 con error en `fin`.
 
 ### Anexo 5 — Tablero GitHub Projects (trazabilidad)
 

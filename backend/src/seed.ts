@@ -1,5 +1,6 @@
 // Seed inicial: mismos datos que frontend/src/services/api/mocks.ts.
 import { PrismaClient } from "@prisma/client";
+import bcryptjs from "bcryptjs";
 import { recomendar } from "./dss/criterios";
 
 const prisma = new PrismaClient();
@@ -140,9 +141,46 @@ export async function seedDatabase(): Promise<void> {
       });
     }
   }
+  // Asignaciones + seguimiento de ejemplo (idempotente).
+  const conv = await prisma.convocatoria.findFirst({ where: { nombre: "Convocatoria Becas 2025-I" } });
+  const tipoExc = await prisma.tipoBeca.findFirst({ where: { nombre: "Excelencia" } });
+  if (conv && tipoExc) {
+    const asig = await prisma.asignacion.findFirst({
+      where: { id_estudiante: 1, id_convocatoria: conv.id, id_tipo_beca: tipoExc.id },
+    });
+    const asigId =
+      asig?.id ??
+      (
+        await prisma.asignacion.create({
+          data: { id_estudiante: 1, id_convocatoria: conv.id, id_tipo_beca: tipoExc.id, puntaje: 92.5, estado: "Aprobada" },
+        })
+      ).id;
+    for (const [periodo, promedio] of [["2024-II", 86.0], ["2025-I", 88.0]] as Array<[string, number]>) {
+      const existe = await prisma.seguimiento.findFirst({ where: { id_asignacion: asigId, periodo } });
+      if (!existe) {
+        await prisma.seguimiento.create({
+          data: {
+            id_asignacion: asigId, fecha: "2025-08-10", periodo, promedio_periodo: promedio,
+            estado: promedio < 51 ? "En riesgo" : "Al día",
+          },
+        });
+      }
+    }
+  }
   if ((await prisma.evento.count()) === 0) {
     await prisma.evento.create({
       data: { id_estudiante: null, tipo: "creacion", detalle: "Base de datos inicializada (seed)" },
+    });
+  }
+  for (const [usuario, nombre, correo, rol, password] of [
+    ["admin", "Admin Bienestar", "admin@universidad.bo", "Administrador", "Admin2026!"],
+    ["evaluador", "Evaluador DSS", "evaluador@universidad.bo", "Evaluador", "Evaluador2026!"],
+    ["consulta", "Consulta Rectorado", "consulta@universidad.bo", "Consulta", "Consulta2026!"],
+  ] as Array<[string, string, string, string, string]>) {
+    await prisma.usuario.upsert({
+      where: { correo },
+      update: {},
+      create: { usuario, nombre, correo, rol, password_hash: bcryptjs.hashSync(password, 10) },
     });
   }
 }
