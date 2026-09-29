@@ -142,6 +142,24 @@ Usuarios iniciales (cambiarlos tras el primer acceso):
 
 ---
 
+## Roles y permisos
+
+| Módulo | Administrador | Evaluador | Consulta |
+|--------|---------------|-----------|----------|
+| Dashboard | ver | ver | ver |
+| Estudiantes | crear, editar, eliminar, subir/borrar documentos | crear, editar, subir documentos | solo ver (lista y detalle) |
+| Evaluación DSS | evaluar, evaluar todos, editar/eliminar evaluaciones | evaluar y evaluar todos | oculto |
+| Becas/asignaciones | generar, aprobar, rechazar, en observación, revocar | aprobar, rechazar, en observación | solo ver |
+| Seguimiento | todo | registrar y editar periodos | solo ver |
+| Reportes | ver, CSV, imprimir | ver, CSV, imprimir | ver, CSV, imprimir |
+| Configuración | todo | oculto | oculto |
+| Administración | todo | oculto | oculto |
+| Restablecer datos | sí | no | no |
+
+Fuente de verdad: `backend/src/auth/permisos.ts`. Sin permiso → 403 "Su rol no permite esta acción".
+
+---
+
 ## Acceso desde otra PC en la misma red
 
 1. En esta PC (la que corre los servidores), obtené tu IP: abrí PowerShell y ejecutá `ipconfig`. Buscá "Adaptador de LAN inalámbrica Wi-Fi" y anotá la "Dirección IPv4" (p. ej. `192.168.1.50`).

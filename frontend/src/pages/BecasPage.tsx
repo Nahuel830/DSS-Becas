@@ -14,7 +14,7 @@ import { catalogosApi } from "../services/api/catalogos";
 import { fetchDashboard } from "../services/api/dashboard";
 import { evaluacionesApi } from "../services/api/evaluaciones";
 import { useToast } from "../state/ToastContext";
-import { useAuth } from "../state/AuthContext";
+import { usePermiso } from "../state/Permisos";
 import { clasificarPuntaje, nombreCompleto } from "../utils/dss";
 import { exportarCSV, exportarPDF } from "../utils/export";
 import { formatMonedaBs, formatPuntaje } from "../utils/format";
@@ -26,7 +26,11 @@ export function BecasPage() {
   const [revocarId, setRevocarId] = useState<number | null>(null);
   const [decision, setDecision] = useState<{ id: number; estado: string } | null>(null);
   const toast = useToast();
-  const auth = useAuth();
+  const puedeGenerar = usePermiso("asignaciones:generar");
+  const puedeDecidir = usePermiso("asignaciones:decidir");
+  const puedeRevocar = usePermiso("asignaciones:revocar");
+  const puedeEvaluar = usePermiso("evaluaciones:crear");
+  const puedeAccionar = puedeDecidir || puedeRevocar;
   const queryClient = useQueryClient();
 
   const convs = useQuery({ queryKey: ["cfg-convocatorias"], queryFn: catalogosApi.convocatorias.listar });
@@ -154,12 +158,12 @@ export function BecasPage() {
             <option key={t.id} value={t.id}>{t.nombre}</option>
           ))}
         </select>
-        {!USE_MOCKS && paramsListos && auth.puedeEditar && (
+        {!USE_MOCKS && paramsListos && puedeGenerar && (
           <Button type="button" onClick={() => generar.mutate()} disabled={generar.isPending}>
             {generar.isPending ? "Generando…" : "Generar asignación"}
           </Button>
         )}
-        {!USE_MOCKS && auth.puedeEditar && (
+        {!USE_MOCKS && puedeEvaluar && (
           <Button
             variant="secondary"
             type="button"
@@ -247,7 +251,7 @@ export function BecasPage() {
                   <th>Estudiante</th>
                   <th>Puntaje</th>
                   <th>Estado</th>
-                  <th>Acción</th>
+                  {puedeAccionar && <th>Acción</th>}
                 </tr>
               </thead>
               <tbody>
@@ -256,9 +260,10 @@ export function BecasPage() {
                     <td>{a.estudiante ? `${a.estudiante.nombre} ${a.estudiante.apellido}` : `ID ${a.id_estudiante}`}</td>
                     <td>{formatPuntaje(a.puntaje)}</td>
                     <td>{a.estado}</td>
+                    {puedeAccionar && (
                     <td>
                       <span className="row-actions">
-                        {auth.puedeEditar && (
+                        {puedeDecidir && (
                           <>
                             <button className="link-btn" type="button" onClick={() => decidir.mutate({ id: a.id, estado: "Aprobada" })}>
                               Aprobar
@@ -269,13 +274,16 @@ export function BecasPage() {
                             <button className="link-btn" type="button" onClick={() => setDecision({ id: a.id, estado: "En observación" })}>
                               Observar
                             </button>
-                            <button className="link-btn danger" type="button" onClick={() => setRevocarId(a.id)}>
-                              Revocar
-                            </button>
                           </>
+                        )}
+                        {puedeRevocar && (
+                          <button className="link-btn danger" type="button" onClick={() => setRevocarId(a.id)}>
+                            Revocar
+                          </button>
                         )}
                       </span>
                     </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

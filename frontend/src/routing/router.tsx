@@ -14,7 +14,7 @@ import { NotFoundPage } from "../pages/NotFoundPage";
 import { NuevoEstudiantePage } from "../pages/NuevoEstudiantePage";
 import { ReportesPage } from "../pages/ReportesPage";
 import { ROUTES } from "./routes";
-import { RequireAuth, RequireRol } from "./guards";
+import { RequireAuth, RequirePermiso } from "./guards";
 
 export const router = createBrowserRouter([
   { path: ROUTES.login, element: <LoginPage /> },
@@ -28,17 +28,31 @@ export const router = createBrowserRouter([
           { index: true, element: <Navigate to={ROUTES.dashboard} replace /> },
           { path: ROUTES.dashboard, element: <DashboardPage /> },
           { path: ROUTES.estudiantes, element: <EstudiantesPage /> },
-          { path: ROUTES.nuevoEstudiante, element: <NuevoEstudiantePage /> },
+          {
+            element: <RequirePermiso permiso="estudiantes:crear" />,
+            children: [{ path: ROUTES.nuevoEstudiante, element: <NuevoEstudiantePage /> }],
+          },
           { path: ROUTES.detalleEstudiante(), element: <DetalleEstudiantePage /> },
-          { path: ROUTES.editarEstudiante(), element: <NuevoEstudiantePage /> },
-          { path: ROUTES.nuevaEvaluacion, element: <EvaluacionPage /> },
-          { path: ROUTES.evaluacionPorId(), element: <EvaluacionPage /> },
+          {
+            element: <RequirePermiso permiso="estudiantes:editar" />,
+            children: [{ path: ROUTES.editarEstudiante(), element: <NuevoEstudiantePage /> }],
+          },
+          {
+            element: <RequirePermiso permiso="evaluaciones:crear" />,
+            children: [
+              { path: ROUTES.nuevaEvaluacion, element: <EvaluacionPage /> },
+              { path: ROUTES.evaluacionPorId(), element: <EvaluacionPage /> },
+            ],
+          },
           { path: ROUTES.becas, element: <BecasPage /> },
-          { path: ROUTES.configuracion, element: <ConfiguracionPage /> },
+          {
+            element: <RequirePermiso permiso="configuracion:ver" />,
+            children: [{ path: ROUTES.configuracion, element: <ConfiguracionPage /> }],
+          },
           { path: ROUTES.seguimiento, element: <SeguimientoPage /> },
           { path: ROUTES.reportes, element: <ReportesPage /> },
           {
-            element: <RequireRol roles={["Administrador"]} />,
+            element: <RequirePermiso permiso="usuarios:gestionar" />,
             children: [{ path: ROUTES.administracion, element: <AdministracionPage /> }],
           },
           { path: "*", element: <NotFoundPage /> },

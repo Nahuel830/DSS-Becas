@@ -1,6 +1,6 @@
-# Progreso de sesión — cierre de módulos y login
+# Progreso de sesión — cierre de módulos, login y permisos por rol
 
-Fecha: 2026-09-29. Rama `main` (PR #10 fusionado). Base de datos intacta.
+Fecha: 2026-09-29. Rama `fix/permisos-roles`. Base de datos intacta (30/28/3, verificado tras incidente D63).
 
 ## PARTE 1 — Bug de guardado: HECHA y commiteada (`8fbb067`)
 
@@ -15,6 +15,10 @@ Fecha: 2026-09-29. Rama `main` (PR #10 fusionado). Base de datos intacta.
 Backend (`requireAuth`/`requireRol`, login con rate-limit, `me`, cambio de password, usuarios solo Admin con guards, eventos, CORS Authorization, JWT aleatorio en `.env`), frontend (LoginPage, AuthContext, rutas protegidas, cambio obligatorio, Header, permisos por rol, administración extendida, mock demo), `auth.test.ts`, openapi 1.2.0 y README con los 3 usuarios.
 
 ## PARTE 3 — GitHub: HECHA (PR #10 fusionado a `main`, Closes #1–#9)
+
+## Matriz de permisos por rol (rama fix/permisos-roles)
+
+Backend `requirePermiso` en cada ruta (fuente: `backend/src/auth/permisos.ts`), frontend con `usePermiso`/`Puede`/`RequirePermiso` desde `permisos[]` del servidor, tests en `backend/tests/permisos.test.ts` (incluye cobertura total de rutas). Decisiones D61–D67. Commit `fix(auth): matriz de permisos por rol en backend y frontend`.
 
 ## PARTE 3 — GitHub: HECHA
 

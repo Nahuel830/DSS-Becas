@@ -6,6 +6,7 @@ import { ROUTES } from "../../routing/routes";
 import { USE_MOCKS, apiClient } from "../../services/api/client";
 import { db } from "../../services/api/db";
 import { inicialesDe, useAuth } from "../../state/AuthContext";
+import { usePermiso } from "../../state/Permisos";
 import { useToast } from "../../state/ToastContext";
 
 /** Header con usuario real, menú de sesión y restablecimiento (solo Admin). */
@@ -14,6 +15,7 @@ export function Header({ alMenu }: { alMenu: () => void }) {
   const [confirmando, setConfirmando] = useState(false);
   const toast = useToast();
   const auth = useAuth();
+  const puedeReset = usePermiso("dev:reset");
   const navigate = useNavigate();
 
   const restablecer = async () => {
@@ -68,7 +70,7 @@ export function Header({ alMenu }: { alMenu: () => void }) {
                   </button>
                 </>
               )}
-              {auth.esAdmin && (
+              {puedeReset && (
                 <button type="button" role="menuitem" onClick={() => setConfirmando(true)}>
                   Restablecer datos de prueba
                 </button>

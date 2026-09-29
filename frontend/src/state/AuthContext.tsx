@@ -8,6 +8,7 @@ export interface SesionUsuario {
   correo: string;
   rol: string;
   debe_cambiar_password?: boolean;
+  permisos: string[];
 }
 
 interface AuthApi {
@@ -17,19 +18,34 @@ interface AuthApi {
   aviso: string | null;
   ingresar: (usuario: string, password: string) => Promise<void>;
   salir: (aviso?: string) => void;
-  esAdmin: boolean;
-  esEvaluador: boolean;
-  esConsulta: boolean;
-  puedeEditar: boolean;
 }
 
 const CLAVE_TOKEN = "dss-becas-token";
 const CLAVE_USUARIO = "dss-becas-usuario";
 
+const TODOS = [
+  "estudiantes:ver", "estudiantes:crear", "estudiantes:editar", "estudiantes:eliminar",
+  "documentos:subir", "documentos:eliminar",
+  "evaluaciones:ver", "evaluaciones:crear", "evaluaciones:editar", "evaluaciones:eliminar",
+  "asignaciones:ver", "asignaciones:generar", "asignaciones:decidir", "asignaciones:revocar",
+  "seguimiento:ver", "seguimiento:editar",
+  "reportes:ver", "catalogos:ver", "configuracion:ver", "configuracion:editar",
+  "usuarios:gestionar", "dev:reset",
+];
+const PERMISOS_MOCK: Record<string, string[]> = {
+  Administrador: TODOS,
+  Evaluador: TODOS.filter((p) => ![
+    "estudiantes:eliminar", "documentos:eliminar", "evaluaciones:eliminar",
+    "asignaciones:generar", "asignaciones:revocar",
+    "configuracion:ver", "configuracion:editar", "usuarios:gestionar", "dev:reset",
+  ].includes(p)),
+  Consulta: ["estudiantes:ver", "evaluaciones:ver", "asignaciones:ver", "seguimiento:ver", "reportes:ver", "catalogos:ver"],
+};
+
 const USUARIOS_MOCK: Array<SesionUsuario & { password: string }> = [
-  { id_usuario: 1, usuario: "admin", nombre: "Admin Bienestar", correo: "admin@universidad.bo", rol: "Administrador", password: "demo" },
-  { id_usuario: 2, usuario: "evaluador", nombre: "Evaluador DSS", correo: "evaluador@universidad.bo", rol: "Evaluador", password: "demo" },
-  { id_usuario: 3, usuario: "consulta", nombre: "Consulta Rectorado", correo: "consulta@universidad.bo", rol: "Consulta", password: "demo" },
+  { id_usuario: 1, usuario: "admin", nombre: "Admin Bienestar", correo: "admin@universidad.bo", rol: "Administrador", permisos: PERMISOS_MOCK.Administrador, password: "demo" },
+  { id_usuario: 2, usuario: "evaluador", nombre: "Evaluador DSS", correo: "evaluador@universidad.bo", rol: "Evaluador", permisos: PERMISOS_MOCK.Evaluador, password: "demo" },
+  { id_usuario: 3, usuario: "consulta", nombre: "Consulta Rectorado", correo: "consulta@universidad.bo", rol: "Consulta", permisos: PERMISOS_MOCK.Consulta, password: "demo" },
 ];
 
 const contexto = createContext<AuthApi | null>(null);
@@ -124,10 +140,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       aviso,
       ingresar,
       salir,
-      esAdmin: sesion.usuario?.rol === "Administrador",
-      esEvaluador: sesion.usuario?.rol === "Evaluador",
-      esConsulta: sesion.usuario?.rol === "Consulta",
-      puedeEditar: sesion.usuario?.rol === "Administrador" || sesion.usuario?.rol === "Evaluador",
     }),
     [sesion, cargando, aviso, ingresar, salir],
   );
