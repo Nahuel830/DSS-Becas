@@ -1,6 +1,6 @@
 # Progreso de sesión — cierre de módulos y login
 
-Fecha: 2026-09-28. Rama: `feature/cierre-modulos`. Base de datos intacta (30 estudiantes, 28 evaluaciones, 3 usuarios).
+Fecha: 2026-09-29. Rama `main` (PR #10 fusionado). Base de datos intacta.
 
 ## PARTE 1 — Bug de guardado: HECHA y commiteada (`8fbb067`)
 
@@ -10,25 +10,19 @@ Fecha: 2026-09-28. Rama: `feature/cierre-modulos`. Base de datos intacta (30 est
 - Tests: backend 40/40, frontend 11/11; typecheck y build verdes.
 - Decisiones D51–D56.
 
-## PARTE 2 — Login: NO EMPEZADA (paso exacto: nada implementado)
+## PARTE 2 — Login: HECHA y commiteada (migraciones `usuario_auth` + `usuario_requerido`, commit `feat(auth)`, D57–D60)
 
-Hecho como preparación: `JWT_SECRET` aleatorio ya generado en `backend/.env` (gitignorado).
-Falta todo, en este orden:
-1. `npm i bcryptjs jsonwebtoken` + `-D @types/bcryptjs @types/jsonwebtoken`.
-2. Migración Usuario (`usuario` opcional → rellenar → obligatorio + `password_hash`, `token_version`, `debe_cambiar_password`, `ultimo_acceso`, `activo`) SIN borrar usuarios.
-3. `backend/prisma/set-passwords.ts` + `npm run db:passwords` + seed 3 usuarios.
-4. Endpoints auth + `requireAuth`/`requireRol` + `Evento` de accesos + CORS Authorization.
-5. Frontend: LoginPage, AuthContext, rutas protegidas, Header con usuario, permisos por rol, AdministracionPage extendida, mock de login.
-6. `auth.test.ts` + adaptar tests existentes con helper de login.
-7. openapi.yaml + README con los 3 usuarios.
-8. Commit `feat(auth): login por usuario con roles y sesiones invalidables`.
+Backend (`requireAuth`/`requireRol`, login con rate-limit, `me`, cambio de password, usuarios solo Admin con guards, eventos, CORS Authorization, JWT aleatorio en `.env`), frontend (LoginPage, AuthContext, rutas protegidas, cambio obligatorio, Header, permisos por rol, administración extendida, mock demo), `auth.test.ts`, openapi 1.2.0 y README con los 3 usuarios.
 
-## PARTE 3 — GitHub: PENDIENTE
+## PARTE 3 — GitHub: HECHA (PR #10 fusionado a `main`, Closes #1–#9)
 
-- Commits existentes (no duplicar): QA/auditoría, cierre-modulos módulos, `fix: guardado robusto`, y el `wip` de abajo.
-- Falta: typecheck/build/tests finales, verificación `.env`/`.db` fuera de git, `git pull --rebase origin main`, push, PR "Cierre de módulos, login y acceso remoto" con Closes #1–#9, merge, `checkout main && pull`.
+## PARTE 3 — GitHub: HECHA
 
-## Migraciones y dependencias pendientes
+- Commits por tema (sin duplicar): módulos, `fix: guardado robusto`, `feat(auth)`, docs.
+- Verificación final: typecheck/build/tests en verde (backend 48/48, frontend 11/11); ningún `.env`/`.db`/binario versionado.
+- PR #10 "Cierre de módulos, login y acceso remoto" (Closes #1–#9) fusionado; `main` actualizado.
 
-- Migraciones aplicadas: `estudiante_solicitud` (datos verificados: 30/28/3). Ninguna pendiente.
-- Dependencias pendientes: `bcryptjs`, `jsonwebtoken`, `@types/bcryptjs`, `@types/jsonwebtoken`.
+## Migraciones y dependencias
+
+- Migraciones aplicadas: `estudiante_solicitud`, `usuario_auth`, `usuario_requerido` (datos intactos).
+- Dependencias instaladas: `bcryptjs`, `jsonwebtoken`, `@types/bcryptjs`, `@types/jsonwebtoken`.
