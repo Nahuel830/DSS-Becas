@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sistemas Multimedia · Proyecto Conejo</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <span class="brand">🐰 Sistemas Multimedia · SIS-0370</span>
+  <nav id="menu" aria-label="Índice"></nav>
+  <div class="progress"><div id="bar"></div></div>
+</header>
+
+<main id="deck">
+
+<!-- 0 PORTADA -->
+<section class="slide cover" data-title="Portada">
+  <div class="cover-text">
+    <p class="kicker">Proyecto informativo · Ingeniería de Sistemas</p>
+    <h1>Del concepto al cortometraje 3D</h1>
+    <p class="lead">Un sistema multimedia interactivo sobre texto, imagen, animación, video y audio,
+      aplicado a un cortometraje de un conejo modelado en Blender.</p>
+    <p class="meta">Asignatura: Sistemas Multimedia · Electiva · Presencial · 5 créditos · 100 horas</p>
+    <button class="btn primary" data-go="next">Comenzar →</button>
+  </div>
+  <figure class="cover-img"><img src="assets/conejo_referencia.jpg" alt="Hoja de modelo del conejo en 3D" onerror="this.parentElement.style.display='none'"></figure>
+</section>
+
+<!-- 1 INTRODUCCION -->
+<section class="slide" data-title="Introducción">
+  <h2>1. Introducción a los sistemas multimedia</h2>
+  <div class="cols">
+    <div>
+      <h3>Concepto</h3>
+      <p>Un <strong>sistema multimedia</strong> integra, en un mismo producto digital y de forma
+        coordinada, varios tipos de información: texto, gráficos, imágenes, animación, video y sonido.
+        El usuario no solo mira: <em>interactúa</em>.</p>
+      <h3>Importancia</h3>
+      <ul>
+        <li>Facilita la comprensión: se combinan varios canales (vista y oído).</li>
+        <li>Apoya los procesos comunicativos e informativos de pequeñas y grandes empresas.</li>
+        <li>Permite contar historias, enseñar, vender y entretener con un mismo lenguaje digital.</li>
+      </ul>
+    </div>
+    <aside class="note">
+      <h3>Nodo problematizador</h3>
+      <p>«Desconocimiento del desarrollo de productos digitales que apoyen los procesos comunicativos
+        e informativos, aplicando componentes y herramientas multimedia apropiadas.»</p>
+    </aside>
+  </div>
+</section>
+
+<!-- 2 TIPOS DE MEDIOS -->
+<section class="slide" data-title="Tipos de medios">
+  <h2>1.2 Tipos de información o medios</h2>
+  <p class="hint">Pulsa una tarjeta para ver cómo se usa en nuestro proyecto.</p>
+  <div class="cards" id="medios"></div>
+  <div class="detail" id="medios-detalle">Selecciona un medio.</div>
+</section>
+
+<!-- 3 CARACTERISTICAS -->
+<section class="slide" data-title="Características">
+  <h2>1.3 Características de los sistemas multimedia</h2>
+  <div class="grid3">
+    <article class="card"><h3>Interactividad</h3><p>El usuario decide qué ver y en qué orden: botones, menús, enlaces.</p></article>
+    <article class="card"><h3>Integración</h3><p>Los medios se combinan en un solo producto con diseño coherente.</p></article>
+    <article class="card"><h3>Digitalización</h3><p>Toda la información se almacena y procesa en formato digital.</p></article>
+    <article class="card"><h3>Hipermedia / navegación</h3><p>Estructura no lineal: se salta entre contenidos relacionados.</p></article>
+    <article class="card"><h3>Sincronización</h3><p>Audio, imagen y movimiento se coordinan en el tiempo.</p></article>
+    <article class="card"><h3>Multiplataforma</h3><p>Se distribuye en web, escritorio, móvil o video.</p></article>
+  </div>
+</section>
+
+<!-- 4 AMBITOS -->
+<section class="slide" data-title="Ámbitos">
+  <h2>1.4 Ámbitos de aplicación</h2>
+  <div class="tabs" id="ambitos-tabs"></div>
+  <div class="detail" id="ambitos-detalle"></div>
+</section>
+
+<!-- 5 HARDWARE -->
+<section class="slide" data-title="Hardware">
+  <h2>2. Hardware para el desarrollo multimedia</h2>
+  <div class="cols">
+    <div class="card"><h3>2.1 Dispositivos de entrada</h3>
+      <ul><li>Teclado y ratón / tableta gráfica</li><li>Micrófono (grabación de voces y efectos)</li><li>Cámara y escáner</li><li>Controladores MIDI</li></ul></div>
+    <div class="card"><h3>2.2 Dispositivos de salida</h3>
+      <ul><li>Monitor y proyector (Data Display)</li><li>Altavoces y audífonos</li><li>Impresora</li><li>Tarjeta gráfica (GPU): clave para renderizar en Blender</li></ul></div>
+    <div class="card"><h3>2.3 Transmisión en red</h3>
+      <ul><li>Streaming de video y audio</li><li>Compresión (H.264, MP3/AAC)</li><li>Publicación en web</li></ul></div>
+  </div>
+  <p class="note-inline">Requisitos recomendados para el proyecto: PC con GPU dedicada, 16 GB de RAM y almacenamiento SSD.</p>
+</section>
+
+<!-- 6 SOFTWARE -->
+<section class="slide" data-title="Software">
+  <h2>2.4 Software para creación de aplicaciones multimedia</h2>
+  <p class="hint">El programa de la materia cita DreamWeaver, Flash, 3DMax y Camtasia. Estas son sus alternativas actuales usadas en el proyecto:</p>
+  <table>
+    <thead><tr><th>Función</th><th>Herramienta clásica</th><th>Herramienta del proyecto</th></tr></thead>
+    <tbody>
+      <tr><td>Modelado y animación 3D</td><td>3DMax</td><td><strong>Blender</strong></td></tr>
+      <tr><td>Edición de video</td><td>Camtasia</td><td>DaVinci Resolve / Kdenlive</td></tr>
+      <tr><td>Audio y música</td><td>—</td><td>Audacity, LMMS</td></tr>
+      <tr><td>Imagen y texturas</td><td>Photoshop</td><td>Krita / GIMP</td></tr>
+      <tr><td>Página web</td><td>DreamWeaver</td><td>VS Code / Antigravity + HTML, CSS, JavaScript</td></tr>
+      <tr><td>Animación interactiva</td><td>Flash</td><td>JavaScript (esta página)</td></tr>
+      <tr><td>Asistente por prompts</td><td>—</td><td>opencode + Blender MCP</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 7 HERRAMIENTAS -->
+<section class="slide" data-title="Herramientas">
+  <h2>3. Herramientas para la creación multimedia</h2>
+  <p class="hint">Los conceptos de Flash tienen equivalente directo en Blender. Pulsa un concepto.</p>
+  <div class="tabs" id="herr-tabs"></div>
+  <div class="detail" id="herr-detalle"></div>
+</section>
+
+<!-- 8 PROGRAMACION -->
+<section class="slide" data-title="Programación">
+  <h2>4. Programación de sistemas multimedia</h2>
+  <div class="cols">
+    <div>
+      <p>El programa menciona <strong>ActionScript</strong> (lenguaje de Flash). Como Flash
+        fue descontinuado, esta página usa <strong>JavaScript</strong>, su descendiente
+        directo (ambos son ECMAScript) y funciona en cualquier navegador.</p>
+      <ul>
+        <li><strong>4.2 Clases y objetos:</strong> <code>class Slide</code>.</li>
+        <li><strong>4.4 Botones:</strong> <code>addEventListener('click', …)</code>.</li>
+        <li><strong>4.6 Fotogramas:</strong> <code>requestAnimationFrame</code>.</li>
+        <li><strong>4.7 Video y sonido:</strong> elementos <code>&lt;video&gt;</code> y <code>&lt;audio&gt;</code>.</li>
+        <li><strong>4.8 Interfaz:</strong> HTML + CSS.</li>
+        <li><strong>4.9 Base de datos:</strong> <code>localStorage</code> (guardamos tu último slide).</li>
+      </ul>
+    </div>
+    <div class="card demo">
+      <h3>Demo interactiva</h3>
+      <pre><code>boton.addEventListener('click', () =&gt; {
+  contador++;
+  salida.textContent = contador;
+});</code></pre>
+      <div class="demo-row">
+        <button class="btn" id="demo-btn">Presióname</button>
+        <span>Clics: <strong id="demo-out">0</strong></span>
+      </div>
+      <div class="rabbit-stage"><div id="demo-rabbit" aria-hidden="true">🐰</div></div>
+      <p class="hint">Cada clic mueve al conejo: botón → evento → animación.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 9 PROYECTO -->
+<section class="slide" data-title="El proyecto">
+  <h2>El proyecto: cortometraje del conejo</h2>
+  <div class="cols">
+    <div>
+      <p>Cortometraje animado en 3D con un conejo realista y caricaturesco, vestido con ropa
+        vieja y gastada, de aspecto tierno e inquietante a la vez. El estilo toma como inspiración
+        el corto <em>Save Ralph</em>, pero con personaje, guion y arte propios.</p>
+      <h3>Ficha técnica</h3>
+      <ul>
+        <li><strong>Duración objetivo:</strong> 1–3 minutos</li>
+        <li><strong>Formato:</strong> 1920×1080, 24 fps</li>
+        <li><strong>Modelado, pelo y render:</strong> Blender</li>
+        <li><strong>Audio:</strong> voces/efectos en Audacity, música en LMMS</li>
+        <li><strong>Montaje:</strong> DaVinci Resolve</li>
+        <li><strong>Difusión:</strong> esta página informativa</li>
+      </ul>
+    </div>
+    <figure class="gallery"><img src="assets/conejo_referencia.jpg" alt="Hoja de modelo del conejo" onerror="this.parentElement.style.display='none'"></figure>
+  </div>
+</section>
+
+<!-- 10 PIPELINE -->
+<section class="slide" data-title="Producción 3D">
+  <h2>Flujo de producción 3D</h2>
+  <p class="hint">Pulsa cada paso o usa los botones para recorrerlo.</p>
+  <ol class="steps" id="pasos"></ol>
+  <div class="detail" id="pasos-detalle"></div>
+</section>
+
+<!-- 11 AUDIO -->
+<section class="slide" data-title="Audio y video">
+  <h2>3.10–3.11 Audio, video y postproducción</h2>
+  <div class="cols">
+    <div class="card"><h3>Audio</h3>
+      <ul><li>Diseño sonoro: respiración, pasos, tela, ambiente.</li>
+      <li>Música original (ambiente inquietante y tierno).</li>
+      <li>Mezcla y normalización en Audacity.</li>
+      <li>Exportar WAV 48 kHz → MP3/AAC para la web.</li></ul>
+      <p class="hint">Coloca tu pista en <code>web/assets/audio.mp3</code> para escucharla aquí:</p>
+      <audio controls src="assets/audio.mp3"></audio></div>
+    <div class="card"><h3>Video</h3>
+      <ul><li>Render por fotogramas (PNG) desde Blender.</li>
+      <li>Montaje, color y títulos en DaVinci Resolve.</li>
+      <li>Exportar MP4 H.264.</li>
+      <li><strong>3.10</strong> Importación y exportación de formatos.</li></ul>
+      <p class="hint">Coloca el corto en <code>web/assets/corto.mp4</code>:</p>
+      <video controls preload="none" poster="assets/conejo_referencia.jpg" src="assets/corto.mp4"></video></div>
+  </div>
+</section>
+
+<!-- 12 EVALUACION -->
+<section class="slide" data-title="Evaluación">
+  <h2>Competencias y evaluación de la asignatura</h2>
+  <div class="cols">
+    <div>
+      <h3>Criterios de verificación</h3>
+      <ol>
+        <li>Analiza las necesidades de comunicación e información de la empresa.</li>
+        <li>Diseña un sistema multimedia con herramientas de desarrollo.</li>
+        <li>Desarrolla un sistema multimedia interactivo según requerimientos.</li>
+      </ol>
+      <h3>Evidencias de producto</h3>
+      <ul><li>Prácticas escritas</li><li>Informe de diagnóstico de necesidades</li><li>Documento de diseño del sistema</li><li>Proyecto multimedia</li></ul>
+    </div>
+    <div>
+      <h3>Escala valorativa (sobre 100)</h3>
+      <table>
+        <tr><td>85–100</td><td>Estratégico (A)</td></tr>
+        <tr><td>70–84</td><td>Autónomo (A)</td></tr>
+        <tr><td>51–69</td><td>Resolutivo (A)</td></tr>
+        <tr><td>25–50</td><td>Receptivo (R)</td></tr>
+        <tr><td>1–24</td><td>Preformal (R)</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 13 CONCLUSIONES -->
+<section class="slide" data-title="Conclusiones">
+  <h2>Conclusiones y referencias</h2>
+  <ul>
+    <li>Un sistema multimedia combina medios y los hace interactivos.</li>
+    <li>Blender permite producir modelado, animación y render en una sola herramienta gratuita.</li>
+    <li>Programar la interfaz (JavaScript) convierte contenido en una experiencia navegable.</li>
+    <li>Un flujo ordenado (bloqueo → topología → detalle → materiales) reduce errores.</li>
+  </ul>
+  <h3>Referencias</h3>
+  <ul class="refs">
+    <li>Programa de formación de asignatura Sistemas Multimedia SIS-0370.</li>
+    <li>Blender Foundation — docs.blender.org</li>
+    <li>MDN Web Docs — developer.mozilla.org</li>
+    <li>Short film «Save Ralph» (inspiración visual) — youtube.com/watch?v=cmlITg5xIb0</li>
+  </ul>
+  <p class="meta">Integrantes: ______________________ · Docente: ______________________</p>
+  <button class="btn primary" data-go="first">↺ Volver al inicio</button>
+</section>
+
+</main>
+
+<footer class="controls">
+  <button class="btn" id="prev" aria-label="Anterior">← Anterior</button>
+  <div id="dots" role="tablist"></div>
+  <span id="count"></span>
+  <button class="btn primary" id="next" aria-label="Siguiente">Siguiente →</button>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
